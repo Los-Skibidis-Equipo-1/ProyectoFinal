@@ -1,0 +1,66 @@
+BEGIN
+SET
+CREATE FUNCTION
+CREATE FUNCTION
+INSERT 0 1
+INSERT 0 1
+INSERT 0 2
+INSERT 0 1
+--- fn_estado_hidratacion ---
+psql:/tmp/db/tests/a5_pruebas_funciones.sql:81: NOTICE:  OK    01 humedad 30 con rango 40-60 es baja
+ 
+
+psql:/tmp/db/tests/a5_pruebas_funciones.sql:83: NOTICE:  OK    02 humedad 50 con rango 40-60 es optima
+ 
+
+psql:/tmp/db/tests/a5_pruebas_funciones.sql:85: NOTICE:  OK    03 humedad 75 con rango 40-60 es alta
+ 
+
+psql:/tmp/db/tests/a5_pruebas_funciones.sql:87: NOTICE:  OK    04 los bordes (40 y 60) cuentan como optima
+ 
+
+psql:/tmp/db/tests/a5_pruebas_funciones.sql:89: NOTICE:  OK    05 sin lectura (NULL) es sin_dato
+ 
+
+--- fn_proximo_riego ---
+psql:/tmp/db/tests/a5_pruebas_funciones.sql:94: NOTICE:  OK    06 planta nunca regada: el riego toca desde su registro (hace 30 días)
+ 
+
+psql:/tmp/db/tests/a5_pruebas_funciones.sql:96: NOTICE:  OK    07 planta que no existe devuelve NULL
+ 
+
+--- sp_registrar_riego: casos correctos ---
+ 5777c326-0478-49b8-828e-bdb0492a6a4b
+
+psql:/tmp/db/tests/a5_pruebas_funciones.sql:104: NOTICE:  OK    08 el riego quedó guardado con su cantidad
+ 
+
+psql:/tmp/db/tests/a5_pruebas_funciones.sql:108: NOTICE:  OK    09 el recordatorio de riego quedó atendido y con fecha
+ 
+
+psql:/tmp/db/tests/a5_pruebas_funciones.sql:112: NOTICE:  OK    10 próximo riego = riego de hace 2 días + 7 días (en 5 días)
+ 
+
+psql:/tmp/db/tests/a5_pruebas_funciones.sql:123: NOTICE:  OK    11 sin cantidad también se registra y regresa el id del cuidado
+DO
+--- sp_registrar_riego: casos que deben fallar ---
+psql:/tmp/db/tests/a5_pruebas_funciones.sql:127: NOTICE:  OK    12 planta que no existe  (P0002: La planta 0ee52521-6216-43d6-b925-f26148bf5f35 no existe en la región 2)
+ 
+
+psql:/tmp/db/tests/a5_pruebas_funciones.sql:129: NOTICE:  OK    13 planta de otra región (existe en Centro, se pide en Norte)  (P0002: La planta bbbbbbbb-0000-0000-0000-000000000001 no existe en la región 1)
+ 
+
+psql:/tmp/db/tests/a5_pruebas_funciones.sql:131: NOTICE:  OK    14 planta fallecida  (23514: La planta bbbbbbbb-0000-0000-0000-000000000002 no está activa (estatus: fallecida))
+ 
+
+psql:/tmp/db/tests/a5_pruebas_funciones.sql:133: NOTICE:  OK    15 cantidad negativa  (23514: La cantidad de agua debe ser mayor que 0 (recibido: -50))
+ 
+
+psql:/tmp/db/tests/a5_pruebas_funciones.sql:136: NOTICE:  OK    16 fecha en el futuro  (23514: La fecha del riego no puede estar vacía ni en el futuro (recibido: 2026-11-27 06:37:07.114219+00))
+ 
+
+psql:/tmp/db/tests/a5_pruebas_funciones.sql:139: NOTICE:  OK    17 los intentos fallidos no guardaron nada (siguen siendo 2 riegos)
+ 
+
+ROLLBACK
+Pruebas de A5 terminadas: si todas dicen OK, A5 cumple.
