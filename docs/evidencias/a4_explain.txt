@@ -1,0 +1,303 @@
+Pager usage is off.
+BEGIN
+SET
+ setseed 
+---------
+ 
+(1 row)
+
+Cargando datos de prueba (tarda unos segundos)...
+INSERT 0 5000
+INSERT 0 6000
+INSERT 0 6000
+INSERT 0 18000
+INSERT 0 180000
+INSERT 0 54000
+  tabla  | count  
+---------+--------
+ especie |   5000
+ usuario |   6000
+ planta  |  18000
+ alerta  |  54000
+ cuidado | 180000
+(5 rows)
+
+DROP INDEX
+ANALYZE
+
+#####################################################################
+#  ANTES DE LOS ÍNDICES                                             #
+#####################################################################
+
+===== Q1 · Iniciar sesión: buscar el correo en el directorio =====
+                                                   QUERY PLAN                                                   
+----------------------------------------------------------------------------------------------------------------
+ Index Scan using directorio_correo_pkey on directorio_correo (actual rows=1 loops=1)
+   Index Cond: ((correo_hmac)::text = '000aa9047c2c85e9be7e2afdb7f050aa000aa9047c2c85e9be7e2afdb7f050aa'::text)
+ Planning Time: 0.117 ms
+ Execution Time: 0.022 ms
+(4 rows)
+
+
+===== Q2 · Plantas de un usuario =====
+                                         QUERY PLAN                                          
+---------------------------------------------------------------------------------------------
+ Seq Scan on planta_r1 planta (actual rows=3 loops=1)
+   Filter: ((region_id = 1) AND (usuario_id = '000aa904-7c2c-85e9-be7e-2afdb7f050aa'::uuid))
+   Rows Removed by Filter: 5997
+ Planning Time: 0.192 ms
+ Execution Time: 0.378 ms
+(5 rows)
+
+
+===== Q3 · Detalle de una planta con su especie =====
+                                              QUERY PLAN                                              
+------------------------------------------------------------------------------------------------------
+ Nested Loop (actual rows=1 loops=1)
+   ->  Index Scan using planta_r1_pkey on planta_r1 p (actual rows=1 loops=1)
+         Index Cond: ((region_id = 1) AND (planta_id = '03efcd5d-4539-0122-fb7a-50711b867c33'::uuid))
+   ->  Index Scan using especie_pkey on especie e (actual rows=1 loops=1)
+         Index Cond: (especie_id = p.especie_id)
+ Planning Time: 0.217 ms
+ Execution Time: 0.017 ms
+(7 rows)
+
+
+===== Q4 · Historial de cuidados de una planta (más reciente primero) =====
+                                               QUERY PLAN                                               
+--------------------------------------------------------------------------------------------------------
+ Limit (actual rows=10 loops=1)
+   ->  Sort (actual rows=10 loops=1)
+         Sort Key: cuidado.fecha_hora DESC
+         Sort Method: quicksort  Memory: 25kB
+         ->  Seq Scan on cuidado_r1 cuidado (actual rows=10 loops=1)
+               Filter: ((region_id = 1) AND (planta_id = '03efcd5d-4539-0122-fb7a-50711b867c33'::uuid))
+               Rows Removed by Filter: 59990
+ Planning Time: 0.145 ms
+ Execution Time: 3.332 ms
+(9 rows)
+
+
+===== Q5 · Último riego de cada planta de un usuario y cuándo toca el siguiente =====
+                                                           QUERY PLAN                                                           
+--------------------------------------------------------------------------------------------------------------------------------
+ Nested Loop Left Join (actual rows=3 loops=1)
+   ->  Nested Loop (actual rows=3 loops=1)
+         ->  Seq Scan on planta_r1 p (actual rows=3 loops=1)
+               Filter: ((region_id = 1) AND (usuario_id = '000aa904-7c2c-85e9-be7e-2afdb7f050aa'::uuid))
+               Rows Removed by Filter: 5997
+         ->  Memoize (actual rows=1 loops=3)
+               Cache Key: p.especie_id
+               Cache Mode: logical
+               Hits: 0  Misses: 3  Evictions: 0  Overflows: 0  Memory Usage: 1kB
+               ->  Index Scan using especie_pkey on especie e (actual rows=1 loops=3)
+                     Index Cond: (especie_id = p.especie_id)
+   ->  Limit (actual rows=1 loops=3)
+         ->  Sort (actual rows=1 loops=3)
+               Sort Key: c.fecha_hora DESC
+               Sort Method: top-N heapsort  Memory: 25kB
+               ->  Append (actual rows=5 loops=3)
+                     ->  Seq Scan on cuidado_r1 c_1 (actual rows=5 loops=3)
+                           Filter: ((region_id = p.region_id) AND (planta_id = p.planta_id) AND ((tipo)::text = 'riego'::text))
+                           Rows Removed by Filter: 59995
+                     ->  Seq Scan on cuidado_r2 c_2 (never executed)
+                           Filter: ((region_id = p.region_id) AND (planta_id = p.planta_id) AND ((tipo)::text = 'riego'::text))
+                     ->  Seq Scan on cuidado_r3 c_3 (never executed)
+                           Filter: ((region_id = p.region_id) AND (planta_id = p.planta_id) AND ((tipo)::text = 'riego'::text))
+ Planning Time: 0.785 ms
+ Execution Time: 9.825 ms
+(25 rows)
+
+
+===== Q6 · Alertas pendientes de un usuario =====
+                                                  QUERY PLAN                                                   
+---------------------------------------------------------------------------------------------------------------
+ Sort (actual rows=2 loops=1)
+   Sort Key: a.fecha_generada DESC
+   Sort Method: quicksort  Memory: 25kB
+   ->  Hash Join (actual rows=2 loops=1)
+         Hash Cond: (a.planta_id = p.planta_id)
+         ->  Seq Scan on alerta_r1 a (actual rows=3599 loops=1)
+               Filter: ((region_id = 1) AND ((estado)::text = 'pendiente'::text))
+               Rows Removed by Filter: 14401
+         ->  Hash (actual rows=3 loops=1)
+               Buckets: 1024  Batches: 1  Memory Usage: 9kB
+               ->  Seq Scan on planta_r1 p (actual rows=3 loops=1)
+                     Filter: ((region_id = 1) AND (usuario_id = '000aa904-7c2c-85e9-be7e-2afdb7f050aa'::uuid))
+                     Rows Removed by Filter: 5997
+ Planning Time: 0.532 ms
+ Execution Time: 2.272 ms
+(15 rows)
+
+
+===== Q7 · Buscar especies por nombre =====
+                      QUERY PLAN                      
+------------------------------------------------------
+ Seq Scan on especie (actual rows=1 loops=1)
+   Filter: ((nombre_comun)::text ~~* '%orquí%'::text)
+   Rows Removed by Filter: 4999
+ Planning Time: 0.069 ms
+ Execution Time: 1.882 ms
+(5 rows)
+
+
+===== Q10 · Plantas con lectura en las últimas 2 horas fuera del rango ideal =====
+                                                                                  QUERY PLAN                                                                                  
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Hash Join (actual rows=98 loops=1)
+   Hash Cond: (e.especie_id = p.especie_id)
+   Join Filter: ((p.humedad_actual < e.humedad_ideal_min) OR (p.humedad_actual > e.humedad_ideal_max))
+   Rows Removed by Join Filter: 44
+   ->  Seq Scan on especie e (actual rows=5000 loops=1)
+   ->  Hash (actual rows=142 loops=1)
+         Buckets: 1024  Batches: 1  Memory Usage: 18kB
+         ->  Seq Scan on planta_r1 p (actual rows=142 loops=1)
+               Filter: ((humedad_actual IS NOT NULL) AND (region_id = 1) AND ((estatus)::text = 'activa'::text) AND (fecha_ultima_lectura >= (now() - '02:00:00'::interval)))
+               Rows Removed by Filter: 5858
+ Planning Time: 0.159 ms
+ Execution Time: 0.973 ms
+(12 rows)
+
+SET
+psql:/tmp/db/03_indices.sql:28: NOTICE:  extension "pg_trgm" already exists, skipping
+CREATE EXTENSION
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+Índices de A4 creados correctamente.
+ANALYZE
+
+#####################################################################
+#  DESPUÉS DE LOS ÍNDICES                                           #
+#####################################################################
+
+===== Q1 · Iniciar sesión: buscar el correo en el directorio =====
+                                                   QUERY PLAN                                                   
+----------------------------------------------------------------------------------------------------------------
+ Index Scan using directorio_correo_pkey on directorio_correo (actual rows=1 loops=1)
+   Index Cond: ((correo_hmac)::text = '000aa9047c2c85e9be7e2afdb7f050aa000aa9047c2c85e9be7e2afdb7f050aa'::text)
+ Planning Time: 0.071 ms
+ Execution Time: 0.023 ms
+(4 rows)
+
+
+===== Q2 · Plantas de un usuario =====
+                                           QUERY PLAN                                            
+-------------------------------------------------------------------------------------------------
+ Index Scan using planta_r1_region_id_usuario_id_idx on planta_r1 planta (actual rows=3 loops=1)
+   Index Cond: ((region_id = 1) AND (usuario_id = '000aa904-7c2c-85e9-be7e-2afdb7f050aa'::uuid))
+ Planning Time: 0.215 ms
+ Execution Time: 0.039 ms
+(4 rows)
+
+
+===== Q3 · Detalle de una planta con su especie =====
+                                              QUERY PLAN                                              
+------------------------------------------------------------------------------------------------------
+ Nested Loop (actual rows=1 loops=1)
+   ->  Index Scan using planta_r1_pkey on planta_r1 p (actual rows=1 loops=1)
+         Index Cond: ((region_id = 1) AND (planta_id = '03efcd5d-4539-0122-fb7a-50711b867c33'::uuid))
+   ->  Index Scan using especie_pkey on especie e (actual rows=1 loops=1)
+         Index Cond: (especie_id = p.especie_id)
+ Planning Time: 0.236 ms
+ Execution Time: 0.020 ms
+(7 rows)
+
+
+===== Q4 · Historial de cuidados de una planta (más reciente primero) =====
+                                                     QUERY PLAN                                                      
+---------------------------------------------------------------------------------------------------------------------
+ Limit (actual rows=10 loops=1)
+   ->  Index Scan using cuidado_r1_region_id_planta_id_fecha_hora_idx on cuidado_r1 cuidado (actual rows=10 loops=1)
+         Index Cond: ((region_id = 1) AND (planta_id = '03efcd5d-4539-0122-fb7a-50711b867c33'::uuid))
+ Planning Time: 0.181 ms
+ Execution Time: 0.066 ms
+(5 rows)
+
+
+===== Q5 · Último riego de cada planta de un usuario y cuándo toca el siguiente =====
+                                                            QUERY PLAN                                                            
+----------------------------------------------------------------------------------------------------------------------------------
+ Nested Loop Left Join (actual rows=3 loops=1)
+   ->  Nested Loop (actual rows=3 loops=1)
+         ->  Index Scan using planta_r1_region_id_usuario_id_idx on planta_r1 p (actual rows=3 loops=1)
+               Index Cond: ((region_id = 1) AND (usuario_id = '000aa904-7c2c-85e9-be7e-2afdb7f050aa'::uuid))
+         ->  Memoize (actual rows=1 loops=3)
+               Cache Key: p.especie_id
+               Cache Mode: logical
+               Hits: 0  Misses: 3  Evictions: 0  Overflows: 0  Memory Usage: 1kB
+               ->  Index Scan using especie_pkey on especie e (actual rows=1 loops=3)
+                     Index Cond: (especie_id = p.especie_id)
+   ->  Limit (actual rows=1 loops=3)
+         ->  Append (actual rows=1 loops=3)
+               ->  Index Only Scan using cuidado_r1_region_id_planta_id_fecha_hora_idx1 on cuidado_r1 c_1 (actual rows=1 loops=3)
+                     Index Cond: ((region_id = p.region_id) AND (planta_id = p.planta_id))
+                     Heap Fetches: 3
+               ->  Index Only Scan using cuidado_r2_region_id_planta_id_fecha_hora_idx1 on cuidado_r2 c_2 (never executed)
+                     Index Cond: ((region_id = p.region_id) AND (planta_id = p.planta_id))
+                     Heap Fetches: 0
+               ->  Index Only Scan using cuidado_r3_region_id_planta_id_fecha_hora_idx1 on cuidado_r3 c_3 (never executed)
+                     Index Cond: ((region_id = p.region_id) AND (planta_id = p.planta_id))
+                     Heap Fetches: 0
+ Planning Time: 0.431 ms
+ Execution Time: 0.151 ms
+(23 rows)
+
+
+===== Q6 · Alertas pendientes de un usuario =====
+                                                      QUERY PLAN                                                      
+----------------------------------------------------------------------------------------------------------------------
+ Sort (actual rows=2 loops=1)
+   Sort Key: a.fecha_generada DESC
+   Sort Method: quicksort  Memory: 25kB
+   ->  Nested Loop (actual rows=2 loops=1)
+         ->  Index Scan using planta_r1_region_id_usuario_id_idx on planta_r1 p (actual rows=3 loops=1)
+               Index Cond: ((region_id = 1) AND (usuario_id = '000aa904-7c2c-85e9-be7e-2afdb7f050aa'::uuid))
+         ->  Index Scan using alerta_r1_region_id_planta_id_fecha_generada_idx on alerta_r1 a (actual rows=1 loops=3)
+               Index Cond: ((region_id = 1) AND (planta_id = p.planta_id))
+ Planning Time: 0.286 ms
+ Execution Time: 0.068 ms
+(10 rows)
+
+
+===== Q7 · Buscar especies por nombre =====
+                                 QUERY PLAN                                 
+----------------------------------------------------------------------------
+ Bitmap Heap Scan on especie (actual rows=1 loops=1)
+   Recheck Cond: ((nombre_comun)::text ~~* '%orquí%'::text)
+   Heap Blocks: exact=1
+   ->  Bitmap Index Scan on idx_especie_nombre_trgm (actual rows=1 loops=1)
+         Index Cond: ((nombre_comun)::text ~~* '%orquí%'::text)
+ Planning Time: 0.111 ms
+ Execution Time: 0.024 ms
+(7 rows)
+
+
+===== Q10 · Plantas con lectura en las últimas 2 horas fuera del rango ideal =====
+                                                                                     QUERY PLAN                                                                                     
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Hash Join (actual rows=98 loops=1)
+   Hash Cond: (e.especie_id = p.especie_id)
+   Join Filter: ((p.humedad_actual < e.humedad_ideal_min) OR (p.humedad_actual > e.humedad_ideal_max))
+   Rows Removed by Join Filter: 44
+   ->  Seq Scan on especie e (actual rows=5000 loops=1)
+   ->  Hash (actual rows=142 loops=1)
+         Buckets: 1024  Batches: 1  Memory Usage: 18kB
+         ->  Bitmap Heap Scan on planta_r1 p (actual rows=142 loops=1)
+               Recheck Cond: ((region_id = 1) AND (fecha_ultima_lectura >= (now() - '02:00:00'::interval)) AND ((estatus)::text = 'activa'::text) AND (humedad_actual IS NOT NULL))
+               Heap Blocks: exact=78
+               ->  Bitmap Index Scan on planta_r1_region_id_fecha_ultima_lectura_idx (actual rows=142 loops=1)
+                     Index Cond: ((region_id = 1) AND (fecha_ultima_lectura >= (now() - '02:00:00'::interval)))
+ Planning Time: 0.321 ms
+ Execution Time: 0.664 ms
+(14 rows)
+
+ROLLBACK
+
+Listo. Compara cada consulta: Seq Scan -> Index Scan y el Execution Time.
