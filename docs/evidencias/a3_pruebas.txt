@@ -1,0 +1,97 @@
+BEGIN
+SET
+CREATE FUNCTION
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+--- Datos válidos insertados. Ahora los inválidos: ---
+psql:/tmp/db/tests/a3_pruebas_esquema.sql:74: NOTICE:  OK    01 región fuera de 1..3  (23514: new row for relation "region" violates check constraint "ck_region_id")
+ 
+
+psql:/tmp/db/tests/a3_pruebas_esquema.sql:78: NOTICE:  OK    02 usuario en región sin partición  (23514: no partition of relation "usuario" found for row)
+ 
+
+psql:/tmp/db/tests/a3_pruebas_esquema.sql:82: NOTICE:  OK    03 usuario en Norte con estado del Centro (CDMX)  (23503: insert or update on table "usuario_r1" violates foreign key constraint "fk_usuario_estado")
+ 
+
+psql:/tmp/db/tests/a3_pruebas_esquema.sql:86: NOTICE:  OK    04 correo con mayúsculas  (23514: new row for relation "usuario_r2" violates check constraint "ck_usuario_correo")
+ 
+
+psql:/tmp/db/tests/a3_pruebas_esquema.sql:90: NOTICE:  OK    05 correo sin formato válido  (23514: new row for relation "usuario_r2" violates check constraint "ck_usuario_correo")
+ 
+
+psql:/tmp/db/tests/a3_pruebas_esquema.sql:94: NOTICE:  OK    06 correo repetido en la misma región  (23505: duplicate key value violates unique constraint "usuario_r2_region_id_correo_key")
+ 
+
+psql:/tmp/db/tests/a3_pruebas_esquema.sql:98: NOTICE:  OK    07 rol que no existe  (23514: new row for relation "usuario_r2" violates check constraint "ck_usuario_rol")
+ 
+
+psql:/tmp/db/tests/a3_pruebas_esquema.sql:102: NOTICE:  OK    08 password_hash demasiado corto  (23514: new row for relation "usuario_r2" violates check constraint "ck_usuario_password")
+ 
+
+psql:/tmp/db/tests/a3_pruebas_esquema.sql:107: NOTICE:  OK    09 planta en Norte de una usuaria del Centro  (23503: insert or update on table "planta_r1" violates foreign key constraint "fk_planta_usuario")
+ 
+
+psql:/tmp/db/tests/a3_pruebas_esquema.sql:112: NOTICE:  OK    10 planta con tipo_espacio inválido  (23514: new row for relation "planta_r2" violates check constraint "ck_planta_espacio")
+ 
+
+psql:/tmp/db/tests/a3_pruebas_esquema.sql:116: NOTICE:  OK    11 planta con especie que no existe  (23503: insert or update on table "planta_r2" violates foreign key constraint "fk_planta_especie")
+ 
+
+psql:/tmp/db/tests/a3_pruebas_esquema.sql:121: NOTICE:  OK    12 planta con humedad pero sin fecha de lectura  (23514: new row for relation "planta_r2" violates check constraint "ck_planta_lectura")
+ 
+
+psql:/tmp/db/tests/a3_pruebas_esquema.sql:126: NOTICE:  OK    13 especie con humedad mínima mayor que la máxima  (23514: new row for relation "especie" violates check constraint "ck_especie_humedad_orden")
+ 
+
+psql:/tmp/db/tests/a3_pruebas_esquema.sql:131: NOTICE:  OK    14 especie sin fuente (cadena vacía)  (23514: new row for relation "especie" violates check constraint "ck_especie_fuente")
+ 
+
+psql:/tmp/db/tests/a3_pruebas_esquema.sql:136: NOTICE:  OK    15 especie con nombre científico repetido  (23505: duplicate key value violates unique constraint "especie_nombre_cientifico_key")
+ 
+
+psql:/tmp/db/tests/a3_pruebas_esquema.sql:140: NOTICE:  OK    16 poda con cantidad_ml  (23514: new row for relation "cuidado_r2" violates check constraint "ck_cuidado_cantidad")
+ 
+
+psql:/tmp/db/tests/a3_pruebas_esquema.sql:144: NOTICE:  OK    17 riego con cantidad negativa  (23514: new row for relation "cuidado_r2" violates check constraint "ck_cuidado_cantidad")
+ 
+
+psql:/tmp/db/tests/a3_pruebas_esquema.sql:148: NOTICE:  OK    18 sensor real sin identificador de dispositivo  (23514: new row for relation "sensor_r2" violates check constraint "ck_sensor_real")
+ 
+
+psql:/tmp/db/tests/a3_pruebas_esquema.sql:152: NOTICE:  OK    19 alerta atendida sin fecha de atención  (23514: new row for relation "alerta_r2" violates check constraint "ck_alerta_atencion")
+ 
+
+psql:/tmp/db/tests/a3_pruebas_esquema.sql:155: NOTICE:  OK    20 directorio con hash que no es hexadecimal  (23514: new row for relation "directorio_correo" violates check constraint "ck_directorio_hex")
+ 
+
+psql:/tmp/db/tests/a3_pruebas_esquema.sql:158: NOTICE:  OK    21 borrar una especie que tiene plantas  (23503: update or delete on table "especie" violates foreign key constraint "fk_planta_especie" on table "planta")
+ 
+
+psql:/tmp/db/tests/a3_pruebas_esquema.sql:162: NOTICE:  OK    22 auditoría de INSERT con datos anteriores  (23514: new row for relation "auditoria" violates check constraint "ck_auditoria_datos")
+ 
+
+--- Las filas quedaron en la partición de su región: ---
+ particion  | count 
+------------+-------
+ usuario_r2 |     1
+(1 row)
+
+ particion | count 
+-----------+-------
+ planta_r2 |     1
+(1 row)
+
+--- Borrar la usuaria borra en cascada sus plantas, sensores, cuidados y alertas: ---
+DELETE 1
+ plantas | sensores | cuidados | alertas 
+---------+----------+----------+---------
+       0 |        0 |        0 |       0
+(1 row)
+
+ROLLBACK
+Pruebas terminadas: si todas dicen OK, el esquema cumple A3.
