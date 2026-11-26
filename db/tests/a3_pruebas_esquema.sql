@@ -10,7 +10,7 @@
 -- Al final hace ROLLBACK: no deja ningún dato de prueba en la base.
 --
 -- Cómo correrlo (después de 01 y 02):
---   psql -U postgres -d plantas -f db/pruebas/a3_pruebas_esquema.sql
+--   psql -U postgres -d plantas -f db/tests/a3_pruebas_esquema.sql
 -- =====================================================================
 
 \set ON_ERROR_STOP on
