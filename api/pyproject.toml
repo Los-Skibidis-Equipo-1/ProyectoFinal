@@ -1,0 +1,32 @@
+[project]
+name = "plantas-api"
+version = "0.1.0"
+description = "API del sistema casero de registro y cuidado de plantas con sensores"
+requires-python = ">=3.11"
+
+[tool.ruff]
+# PEP 8 fija 79 caracteres por línea.
+line-length = 79
+target-version = "py311"
+extend-exclude = [".venv", "venv"]
+
+[tool.ruff.lint]
+# E y W: estilo PEP 8 (pycodestyle). F: errores (pyflakes). I: orden de imports.
+# N: nombres PEP 8. UP: sintaxis moderna de Python. B: errores comunes.
+select = ["E", "W", "F", "I", "N", "UP", "B"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.coverage.run]
+source = ["plantas"]
+
+[tool.coverage.report]
+# Mínimo que piden los lineamientos. Aplica al correr pytest con --cov.
+fail_under = 60
+show_missing = true
+
+[tool.bandit]
+# bandit marca `assert` (B101) y es normal en pruebas, así que se excluyen.
+exclude_dirs = ["tests", ".venv", "venv"]
