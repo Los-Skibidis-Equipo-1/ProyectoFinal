@@ -1,19 +1,29 @@
 """Pruebas de la jerarquía de excepciones."""
 
+from uuid import UUID
+
 import pytest
 
 from plantas.dominio.excepciones import (
     CampoVacio,
+    CorreoYaRegistrado,
+    DirectorioNoDisponible,
+    ErrorDeInfraestructura,
     ErrorDeNegocio,
     ErrorDeValidacion,
     ErrorPlantas,
     FechaInvalida,
+    LecturaNoGuardada,
+    NodoNoDisponible,
     OpcionNoPermitida,
     PlantaInactiva,
     PlantaNoEncontrada,
     TipoDeDatoInvalido,
     ValorFueraDeRango,
 )
+
+PLANTA = UUID("11111111-1111-1111-1111-111111111111")
+SENSOR = UUID("22222222-2222-2222-2222-222222222222")
 
 VALIDACION = [
     CampoVacio,
@@ -31,23 +41,40 @@ def test_los_errores_de_validacion_heredan_de_la_base(clase):
     assert issubclass(clase, Exception)
 
 
-@pytest.mark.parametrize("clase", [PlantaNoEncontrada, PlantaInactiva])
+@pytest.mark.parametrize(
+    "clase", [PlantaNoEncontrada, PlantaInactiva, CorreoYaRegistrado]
+)
 def test_los_errores_de_negocio_heredan_de_la_base(clase):
     assert issubclass(clase, ErrorDeNegocio)
     assert issubclass(clase, ErrorPlantas)
 
 
-def test_validacion_y_negocio_son_ramas_distintas():
-    assert not issubclass(ErrorDeValidacion, ErrorDeNegocio)
-    assert not issubclass(ErrorDeNegocio, ErrorDeValidacion)
+@pytest.mark.parametrize(
+    "clase", [NodoNoDisponible, DirectorioNoDisponible, LecturaNoGuardada]
+)
+def test_los_errores_de_infraestructura_heredan_de_la_base(clase):
+    assert issubclass(clase, ErrorDeInfraestructura)
+    assert issubclass(clase, ErrorPlantas)
+
+
+def test_las_tres_ramas_son_distintas():
+    ramas = [ErrorDeValidacion, ErrorDeNegocio, ErrorDeInfraestructura]
+    for rama in ramas:
+        for otra in ramas:
+            if rama is not otra:
+                assert not issubclass(rama, otra)
 
 
 def test_atrapar_la_base_atrapa_cualquier_error_propio():
     errores = [
         CampoVacio("vacío"),
         ValorFueraDeRango("fuera"),
-        PlantaNoEncontrada(7, 2),
-        PlantaInactiva(7, "fallecida"),
+        PlantaNoEncontrada(PLANTA, 2),
+        PlantaInactiva(PLANTA, "fallecida"),
+        CorreoYaRegistrado(),
+        NodoNoDisponible(1, "MongoDB"),
+        DirectorioNoDisponible(),
+        LecturaNoGuardada(SENSOR, 3),
     ]
     for error in errores:
         with pytest.raises(ErrorPlantas):
@@ -73,17 +100,19 @@ def test_el_campo_y_el_valor_son_opcionales():
 
 
 def test_planta_no_encontrada_dice_planta_y_region():
-    error = PlantaNoEncontrada(7, 2)
-    assert error.planta_id == 7
+    error = PlantaNoEncontrada(PLANTA, 2)
+    assert error.planta_id == PLANTA
     assert error.region_id == 2
-    assert str(error) == "La planta 7 no existe en la región 2"
+    assert str(error) == f"La planta {PLANTA} no existe en la región 2"
 
 
 def test_planta_inactiva_dice_planta_y_estatus():
-    error = PlantaInactiva(7, "fallecida")
-    assert error.planta_id == 7
+    error = PlantaInactiva(PLANTA, "fallecida")
+    assert error.planta_id == PLANTA
     assert error.estatus == "fallecida"
-    assert str(error) == "La planta 7 no está activa (estatus: fallecida)"
+    assert str(error) == (
+        f"La planta {PLANTA} no está activa (estatus: fallecida)"
+    )
 
 
 def test_sqlstate_coincide_con_los_errores_de_a5():
@@ -92,4 +121,35 @@ def test_sqlstate_coincide_con_los_errores_de_a5():
     assert PlantaInactiva.sqlstate == "23514"
     assert ErrorDeValidacion.sqlstate == "23514"
     assert CampoVacio.sqlstate == "23514"
+    assert CorreoYaRegistrado.sqlstate == "23505"
     assert ErrorPlantas.sqlstate is None
+
+
+def test_correo_ya_registrado_no_incluye_el_correo():
+    error = CorreoYaRegistrado()
+    assert str(error) == "Ese correo ya está registrado"
+    assert not hasattr(error, "correo")
+
+
+def test_nodo_no_disponible_dice_region_y_servicio():
+    error = NodoNoDisponible(3, "MongoDB")
+    assert error.region_id == 3
+    assert error.servicio == "MongoDB"
+    assert "MongoDB" in str(error)
+    assert "región 3" in str(error)
+
+
+def test_directorio_no_disponible_pide_intentar_de_nuevo():
+    assert "intenta de nuevo" in str(DirectorioNoDisponible())
+
+
+def test_lectura_no_guardada_dice_sensor_e_intentos():
+    error = LecturaNoGuardada(SENSOR, 3)
+    assert error.sensor_id == SENSOR
+    assert error.intentos == 3
+    assert "3 intentos" in str(error)
+
+
+def test_los_errores_de_infraestructura_no_tienen_sqlstate():
+    assert ErrorDeInfraestructura.sqlstate is None
+    assert NodoNoDisponible.sqlstate is None

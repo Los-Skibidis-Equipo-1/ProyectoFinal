@@ -11,17 +11,29 @@ inesperados sigan su camino.
     │   ├── ValorFueraDeRango
     │   ├── OpcionNoPermitida
     │   └── FechaInvalida
-    └── ErrorDeNegocio             dato válido que la regla no permite
-        ├── PlantaNoEncontrada
-        └── PlantaInactiva
+    ├── ErrorDeNegocio             dato válido que la regla no permite
+    │   ├── PlantaNoEncontrada
+    │   ├── PlantaInactiva
+    │   └── CorreoYaRegistrado
+    └── ErrorDeInfraestructura     el dato está bien, pero un servicio falló
+        ├── NodoNoDisponible
+        ├── DirectorioNoDisponible
+        └── LecturaNoGuardada
 
 El atributo ``sqlstate`` relaciona cada excepción con el error que devuelve
 PostgreSQL en el procedimiento sp_registrar_riego (A5), para que la capa de
 datos (B9) traduzca el error de la base a la excepción correcta.
 
+ErrorDeInfraestructura cubre lo que decidió D-01 (docs/registro-decisiones.md):
+la API responde 503 si el directorio no confirma a tiempo, y reintenta las
+lecturas de MongoDB antes de darlas por perdidas.
+
 Los mensajes y los atributos no deben llevar contraseñas, tokens ni datos
-personales: se escriben en la bitácora y en las respuestas de la API.
+personales (tampoco el correo, solo se guarda su HMAC): se escriben en la
+bitácora y en las respuestas de la API.
 """
+
+from uuid import UUID
 
 
 class ErrorPlantas(Exception):  # noqa: N818 (en español: prefijo Error)
@@ -79,7 +91,7 @@ class PlantaNoEncontrada(ErrorDeNegocio):
 
     sqlstate = "P0002"  # no_data_found
 
-    def __init__(self, planta_id: int, region_id: int) -> None:
+    def __init__(self, planta_id: UUID, region_id: int) -> None:
         super().__init__(
             f"La planta {planta_id} no existe en la región {region_id}"
         )
@@ -92,9 +104,67 @@ class PlantaInactiva(ErrorDeNegocio):
 
     sqlstate = "23514"  # check_violation
 
-    def __init__(self, planta_id: int, estatus: str) -> None:
+    def __init__(self, planta_id: UUID, estatus: str) -> None:
         super().__init__(
             f"La planta {planta_id} no está activa (estatus: {estatus})"
         )
         self.planta_id = planta_id
         self.estatus = estatus
+
+
+class CorreoYaRegistrado(ErrorDeNegocio):
+    """El correo ya tiene una reserva en el directorio (alta de usuario).
+
+    El correo no se guarda en la excepción: solo existe su HMAC.
+    """
+
+    sqlstate = "23505"  # unique_violation
+
+    def __init__(self) -> None:
+        super().__init__("Ese correo ya está registrado")
+
+
+class ErrorDeInfraestructura(ErrorPlantas):
+    """La petición es correcta, pero un nodo o servicio no pudo atenderla.
+
+    La API responde 503 y el cliente puede intentarlo más tarde.
+    """
+
+
+class NodoNoDisponible(ErrorDeInfraestructura):
+    """El nodo de la región no responde (PostgreSQL o MongoDB)."""
+
+    def __init__(self, region_id: int, servicio: str) -> None:
+        super().__init__(
+            f"El servicio {servicio} de la región {region_id} no responde"
+        )
+        self.region_id = region_id
+        self.servicio = servicio
+
+
+class DirectorioNoDisponible(ErrorDeInfraestructura):
+    """El directorio de correos no confirmó a tiempo (D-01, sección 5).
+
+    Afecta solo el registro y la baja de cuenta; el login sigue funcionando
+    porque solo lee.
+    """
+
+    def __init__(self) -> None:
+        super().__init__(
+            "No se pudo confirmar el directorio de correos; intenta de nuevo"
+        )
+
+
+class LecturaNoGuardada(ErrorDeInfraestructura):
+    """MongoDB no respondió tras los reintentos y la lectura se perdió.
+
+    D-01 (sección 7) acepta esta pérdida: la siguiente lectura la compensa.
+    """
+
+    def __init__(self, sensor_id: UUID, intentos: int) -> None:
+        super().__init__(
+            f"No se guardó la lectura del sensor {sensor_id} "
+            f"tras {intentos} intentos"
+        )
+        self.sensor_id = sensor_id
+        self.intentos = intentos

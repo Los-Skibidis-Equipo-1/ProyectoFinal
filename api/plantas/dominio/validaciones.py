@@ -10,10 +10,13 @@ import math
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
+from uuid import UUID
 
 from plantas.dominio.catalogos import (
     HUMEDAD_MAX,
     HUMEDAD_MIN,
+    REGION_MAX,
+    REGION_MIN,
     RIEGO_DIAS_MAX,
     RIEGO_DIAS_MIN,
     TEMPERATURA_MAX,
@@ -175,6 +178,41 @@ def validar_fecha_no_futura(
             f"{campo} no puede estar en el futuro", campo, valor
         )
     return valor
+
+
+def validar_region(valor: object) -> int:
+    """Región del usuario: 1 Norte, 2 Centro o 3 Sur (ck_region_id)."""
+    numero = validar_rango(valor, "región", REGION_MIN, REGION_MAX)
+    if not numero.is_integer():
+        raise TipoDeDatoInvalido(
+            f"La región debe ser un número entero (recibido: {numero})",
+            "región",
+            valor,
+        )
+    return int(numero)
+
+
+def validar_uuid(valor: object, campo: str) -> UUID:
+    """Identificador UUID, como los de usuario, planta y sensor.
+
+    La API genera el ``usuario_id`` (D-01, sección 6); los demás los genera
+    la base. Acepta un UUID o su texto.
+    """
+    if isinstance(valor, UUID):
+        return valor
+    if not isinstance(valor, str):
+        raise TipoDeDatoInvalido(
+            f"{campo} debe ser un UUID (tipo recibido: "
+            f"{type(valor).__name__})",
+            campo,
+            valor,
+        )
+    try:
+        return UUID(valor.strip())
+    except ValueError as error:
+        raise TipoDeDatoInvalido(
+            f"{campo} no es un UUID válido", campo, valor
+        ) from error
 
 
 @dataclass

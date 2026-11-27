@@ -1,6 +1,7 @@
 """Pruebas de las validaciones del dominio."""
 
 from datetime import UTC, datetime, timedelta, timezone
+from uuid import UUID, uuid4
 
 import pytest
 
@@ -22,8 +23,10 @@ from plantas.dominio.validaciones import (
     validar_humedad,
     validar_opcion,
     validar_rango,
+    validar_region,
     validar_temperatura,
     validar_texto_no_vacio,
+    validar_uuid,
 )
 
 # ---------------------------------------------------------------- números
@@ -126,6 +129,48 @@ def test_frecuencia_de_riego_fuera_de_rango(valor):
 def test_frecuencia_de_riego_debe_ser_entera():
     with pytest.raises(TipoDeDatoInvalido, match="entero"):
         validar_frecuencia_riego_dias(2.5)
+
+
+# ---------------------------------------------------- región e identificadores
+
+
+@pytest.mark.parametrize(("valor", "esperado"), [(1, 1), (2, 2), ("3", 3)])
+def test_region_valida(valor, esperado):
+    resultado = validar_region(valor)
+    assert resultado == esperado
+    assert isinstance(resultado, int)
+
+
+@pytest.mark.parametrize("valor", [0, 4, -1])
+def test_region_fuera_de_rango(valor):
+    with pytest.raises(ValorFueraDeRango):
+        validar_region(valor)
+
+
+def test_region_debe_ser_entera():
+    with pytest.raises(TipoDeDatoInvalido, match="entero"):
+        validar_region(1.5)
+
+
+def test_uuid_acepta_texto_y_objeto():
+    identificador = uuid4()
+    assert validar_uuid(identificador, "usuario") == identificador
+    assert validar_uuid(f"  {identificador}  ", "usuario") == identificador
+
+
+@pytest.mark.parametrize("valor", ["123", "", "no-es-uuid", None, 5])
+def test_uuid_invalido(valor):
+    with pytest.raises(TipoDeDatoInvalido, match="usuario"):
+        validar_uuid(valor, "usuario")
+
+
+def test_uuid_invalido_conserva_el_error_original():
+    with pytest.raises(TipoDeDatoInvalido) as info:
+        validar_uuid("xyz", "usuario")
+    assert isinstance(info.value.__cause__, ValueError)
+    assert isinstance(
+        validar_uuid("11111111-1111-1111-1111-111111111111", "usuario"), UUID
+    )
 
 
 # ------------------------------------------------------------------ texto

@@ -37,3 +37,27 @@ def test_el_esquema_sql_existe():
 @pytest.mark.parametrize(("nombre_check", "catalogo"), CATALOGOS)
 def test_el_catalogo_coincide_con_el_esquema(nombre_check, catalogo):
     assert opciones_del_esquema(nombre_check) == catalogo
+
+
+def limites_del_esquema(patron: str) -> tuple[int, int]:
+    sql = ESQUEMA.read_text(encoding="utf-8")
+    encontrado = re.search(patron, sql)
+    assert encontrado, f"No se encontró {patron!r} en db/01_esquema.sql"
+    return int(encontrado.group(1)), int(encontrado.group(2))
+
+
+def test_los_limites_numericos_coinciden_con_el_esquema():
+    assert limites_del_esquema(
+        r"ck_region_id\s+CHECK\s*\(region_id BETWEEN (-?\d+) AND (-?\d+)"
+    ) == (catalogos.REGION_MIN, catalogos.REGION_MAX)
+    assert limites_del_esquema(
+        r"ck_planta_humedad.*?humedad_actual BETWEEN (-?\d+) AND (-?\d+)"
+    ) == (catalogos.HUMEDAD_MIN, catalogos.HUMEDAD_MAX)
+    assert limites_del_esquema(
+        r"ck_especie_riego\s+CHECK\s*\(frecuencia_riego_dias "
+        r"BETWEEN (-?\d+) AND (-?\d+)"
+    ) == (catalogos.RIEGO_DIAS_MIN, catalogos.RIEGO_DIAS_MAX)
+    assert limites_del_esquema(
+        r"ck_especie_temp_rango\s+CHECK\s*\(temp_min >= (-?\d+) "
+        r"AND temp_max <= (-?\d+)"
+    ) == (catalogos.TEMPERATURA_MIN, catalogos.TEMPERATURA_MAX)
