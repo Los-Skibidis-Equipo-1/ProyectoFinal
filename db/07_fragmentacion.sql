@@ -84,6 +84,9 @@ COMMENT ON TABLE fragmento IS
 SELECT format('ALTER DATABASE %I SET app.region_local = %L', current_database(), :'region') \gexec
 -- Y para el resto de este script (la sesión actual no ve el ALTER DATABASE):
 SELECT set_config('app.region_local', :'region', true);
+-- Si este nodo fue reincorporado en un ensayo de A12, la API quedó en
+-- solo lectura aquí; al reinstalar vuelve a la normalidad.
+SELECT format('ALTER ROLE plantas_api IN DATABASE %I RESET default_transaction_read_only', current_database()) \gexec
 
 -- =====================================================================
 -- 4. fn_region_local(): regiones que atiende este nodo, como arreglo.

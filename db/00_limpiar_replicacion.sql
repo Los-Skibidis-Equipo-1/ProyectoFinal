@@ -27,10 +27,9 @@ SELECT format('DROP SUBSCRIPTION %I', subname)
 FROM pg_subscription
 WHERE subdbid = (SELECT oid FROM pg_database WHERE datname = current_database()) \gexec
 
--- Publicaciones.
-DROP PUBLICATION IF EXISTS pub_frag;
-DROP PUBLICATION IF EXISTS pub_fijos;
-DROP PUBLICATION IF EXISTS pub_globales;
+-- Publicaciones (todas: pub_frag, pub_fijos, pub_globales y las
+-- pub_promovida_r<N> que deja promover.sh en A12).
+SELECT format('DROP PUBLICATION %I', pubname) FROM pg_publication \gexec
 
 -- Slots que ya nadie usa (sus suscripciones se soltaron en la 1.a vuelta).
 SELECT count(pg_drop_replication_slot(slot_name)) AS slots_borrados

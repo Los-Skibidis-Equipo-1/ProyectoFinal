@@ -21,8 +21,11 @@ x-nodo: &nodo
     POSTGRES_DB: plantas
   # Replicación lógica (A11): con 3 suscripciones por nodo, el límite por
   # omisión de 4 procesos de replicación se agota durante la copia inicial.
+  # A12: los timeouts de 15 s (60 s por omisión) hacen que un nodo detecte
+  # más rápido que otro quedó aislado de la red.
   command: ["postgres", "-c", "wal_level=logical", "-c", "max_replication_slots=10", "-c", "max_wal_senders=10",
-            "-c", "max_logical_replication_workers=10", "-c", "max_worker_processes=16"]
+            "-c", "max_logical_replication_workers=10", "-c", "max_worker_processes=16",
+            "-c", "wal_sender_timeout=15s", "-c", "wal_receiver_timeout=15s"]
   networks: [lab]
   healthcheck:
     test: ["CMD-SHELL", "pg_isready -U postgres -d plantas"]

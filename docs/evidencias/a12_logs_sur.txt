@@ -1,0 +1,162 @@
+﻿Logs de pg-sur durante el ensayo de A12
+2026-11-27 20:48:23.680 UTC [230] ERROR:  new row violates row-level security policy for table "usuario"
+2026-11-27 20:48:23.680 UTC [230] STATEMENT:  INSERT INTO usuario (region_id, usuario_id, nombre, apellidos, correo, password_hash, estado_id) VALUES (2, 'a1200000-0000-0000-0000-0000000000ff', 'NoDebeEntrar', 'A12', '0000ff@ejemplo.com', repeat('x', 64), 22)
+2026-11-27 20:48:23.965 UTC [179] LOG:  data stream from publisher has ended
+2026-11-27 20:48:23.965 UTC [179] ERROR:  could not send end-of-streaming message to primary: server closed the connection unexpectedly
+		This probably means the server terminated abnormally
+		before or while processing the request.
+	no COPY in progress
+2026-11-27 20:48:23.969 UTC [1] LOG:  background worker "logical replication worker" (PID 179) exited with exit code 1
+2026-11-27 20:48:24.405 UTC [231] LOG:  logical replication apply worker for subscription "sub_frag_r2" has started
+2026-11-27 20:48:24.408 UTC [231] ERROR:  could not connect to the publisher: connection to server at "pg-centro" (172.23.0.2), port 5432 failed: Connection refused
+		Is the server running on that host and accepting TCP/IP connections?
+2026-11-27 20:48:24.414 UTC [1] LOG:  background worker "logical replication worker" (PID 231) exited with exit code 1
+2026-11-27 20:48:25.029 UTC [248] FATAL:  password authentication failed for user "root"
+2026-11-27 20:48:25.029 UTC [248] DETAIL:  Role "root" does not exist.
+	Connection matched file "/var/lib/postgresql/data/pg_hba.conf" line 128: "host all all all scram-sha-256"
+2026-11-27 20:48:29.409 UTC [267] LOG:  logical replication apply worker for subscription "sub_frag_r2" has started
+2026-11-27 20:48:33.373 UTC [267] ERROR:  could not connect to the publisher: could not translate host name "pg-centro" to address: Name or service not known
+2026-11-27 20:48:33.377 UTC [1] LOG:  background worker "logical replication worker" (PID 267) exited with exit code 1
+2026-11-27 20:48:34.410 UTC [289] LOG:  logical replication apply worker for subscription "sub_frag_r2" has started
+2026-11-27 20:48:42.371 UTC [289] ERROR:  could not connect to the publisher: could not translate host name "pg-centro" to address: Name or service not known
+2026-11-27 20:48:42.376 UTC [1] LOG:  background worker "logical replication worker" (PID 289) exited with exit code 1
+2026-11-27 20:48:42.379 UTC [315] LOG:  logical replication apply worker for subscription "sub_frag_r2" has started
+2026-11-27 20:48:46.371 UTC [315] ERROR:  could not connect to the publisher: could not translate host name "pg-centro" to address: Name or service not known
+2026-11-27 20:48:46.377 UTC [1] LOG:  background worker "logical replication worker" (PID 315) exited with exit code 1
+2026-11-27 20:48:47.379 UTC [336] LOG:  logical replication apply worker for subscription "sub_frag_r2" has started
+2026-11-27 20:48:51.353 UTC [336] ERROR:  could not connect to the publisher: could not translate host name "pg-centro" to address: Name or service not known
+2026-11-27 20:48:51.358 UTC [1] LOG:  background worker "logical replication worker" (PID 336) exited with exit code 1
+2026-11-27 20:48:55.165 UTC [417] FATAL:  password authentication failed for user "root"
+2026-11-27 20:48:55.165 UTC [417] DETAIL:  Role "root" does not exist.
+	Connection matched file "/var/lib/postgresql/data/pg_hba.conf" line 128: "host all all all scram-sha-256"
+2026-11-27 20:48:56.278 UTC [466] LOG:  logical decoding found consistent point at 0/1F78388
+2026-11-27 20:48:56.278 UTC [466] DETAIL:  There are no running transactions.
+2026-11-27 20:48:56.278 UTC [466] STATEMENT:  CREATE_REPLICATION_SLOT "sub_promovida_r2" LOGICAL pgoutput (SNAPSHOT 'nothing')
+2026-11-27 20:48:56.324 UTC [470] LOG:  starting logical decoding for slot "sub_promovida_r2"
+2026-11-27 20:48:56.324 UTC [470] DETAIL:  Streaming transactions committing after 0/1F783C0, reading WAL from 0/1F78388.
+2026-11-27 20:48:56.324 UTC [470] STATEMENT:  START_REPLICATION SLOT "sub_promovida_r2" LOGICAL 0/0 (proto_version '4', origin 'any', publication_names '"pub_promovida_r2"')
+2026-11-27 20:48:56.325 UTC [470] LOG:  logical decoding found consistent point at 0/1F78388
+2026-11-27 20:48:56.325 UTC [470] DETAIL:  There are no running transactions.
+2026-11-27 20:48:56.325 UTC [470] STATEMENT:  START_REPLICATION SLOT "sub_promovida_r2" LOGICAL 0/0 (proto_version '4', origin 'any', publication_names '"pub_promovida_r2"')
+2026-11-27 20:48:56.393 UTC [473] LOG:  logical decoding found consistent point at 0/1F783C0
+2026-11-27 20:48:56.393 UTC [473] DETAIL:  There are no running transactions.
+2026-11-27 20:48:56.393 UTC [473] STATEMENT:  CREATE_REPLICATION_SLOT "pg_17694_sync_17282_7712949443355664422" LOGICAL pgoutput (SNAPSHOT 'use')
+2026-11-27 20:48:56.427 UTC [473] LOG:  starting logical decoding for slot "pg_17694_sync_17282_7712949443355664422"
+2026-11-27 20:48:56.427 UTC [473] DETAIL:  Streaming transactions committing after 0/1F783F8, reading WAL from 0/1F783C0.
+2026-11-27 20:48:56.427 UTC [473] STATEMENT:  START_REPLICATION SLOT "pg_17694_sync_17282_7712949443355664422" LOGICAL 0/1F783F8 (proto_version '4', origin 'any', publication_names '"pub_promovida_r2"')
+2026-11-27 20:48:56.428 UTC [473] LOG:  logical decoding found consistent point at 0/1F783C0
+2026-11-27 20:48:56.428 UTC [473] DETAIL:  There are no running transactions.
+2026-11-27 20:48:56.428 UTC [473] STATEMENT:  START_REPLICATION SLOT "pg_17694_sync_17282_7712949443355664422" LOGICAL 0/1F783F8 (proto_version '4', origin 'any', publication_names '"pub_promovida_r2"')
+2026-11-27 20:48:56.434 UTC [474] LOG:  logical decoding found consistent point at 0/1F783F8
+2026-11-27 20:48:56.434 UTC [474] DETAIL:  There are no running transactions.
+2026-11-27 20:48:56.434 UTC [474] STATEMENT:  CREATE_REPLICATION_SLOT "pg_17694_sync_17187_7712949443355664422" LOGICAL pgoutput (SNAPSHOT 'use')
+2026-11-27 20:48:56.484 UTC [474] LOG:  starting logical decoding for slot "pg_17694_sync_17187_7712949443355664422"
+2026-11-27 20:48:56.484 UTC [474] DETAIL:  Streaming transactions committing after 0/1F78430, reading WAL from 0/1F783F8.
+2026-11-27 20:48:56.484 UTC [474] STATEMENT:  START_REPLICATION SLOT "pg_17694_sync_17187_7712949443355664422" LOGICAL 0/1F78430 (proto_version '4', origin 'any', publication_names '"pub_promovida_r2"')
+2026-11-27 20:48:56.484 UTC [474] LOG:  logical decoding found consistent point at 0/1F783F8
+2026-11-27 20:48:56.484 UTC [474] DETAIL:  There are no running transactions.
+2026-11-27 20:48:56.484 UTC [474] STATEMENT:  START_REPLICATION SLOT "pg_17694_sync_17187_7712949443355664422" LOGICAL 0/1F78430 (proto_version '4', origin 'any', publication_names '"pub_promovida_r2"')
+2026-11-27 20:48:56.551 UTC [476] LOG:  logical decoding found consistent point at 0/1F784D0
+2026-11-27 20:48:56.551 UTC [476] DETAIL:  There are no running transactions.
+2026-11-27 20:48:56.551 UTC [476] STATEMENT:  CREATE_REPLICATION_SLOT "pg_17694_sync_17365_7712949443355664422" LOGICAL pgoutput (SNAPSHOT 'use')
+2026-11-27 20:48:56.582 UTC [477] LOG:  logical decoding found consistent point at 0/1F78508
+2026-11-27 20:48:56.582 UTC [477] DETAIL:  There are no running transactions.
+2026-11-27 20:48:56.582 UTC [477] STATEMENT:  CREATE_REPLICATION_SLOT "pg_17694_sync_17501_7712949443355664422" LOGICAL pgoutput (SNAPSHOT 'use')
+2026-11-27 20:48:56.585 UTC [476] LOG:  starting logical decoding for slot "pg_17694_sync_17365_7712949443355664422"
+2026-11-27 20:48:56.585 UTC [476] DETAIL:  Streaming transactions committing after 0/1F78508, reading WAL from 0/1F784D0.
+2026-11-27 20:48:56.585 UTC [476] STATEMENT:  START_REPLICATION SLOT "pg_17694_sync_17365_7712949443355664422" LOGICAL 0/1F78508 (proto_version '4', origin 'any', publication_names '"pub_promovida_r2"')
+2026-11-27 20:48:56.585 UTC [476] LOG:  logical decoding found consistent point at 0/1F784D0
+2026-11-27 20:48:56.585 UTC [476] DETAIL:  There are no running transactions.
+2026-11-27 20:48:56.585 UTC [476] STATEMENT:  START_REPLICATION SLOT "pg_17694_sync_17365_7712949443355664422" LOGICAL 0/1F78508 (proto_version '4', origin 'any', publication_names '"pub_promovida_r2"')
+2026-11-27 20:48:56.631 UTC [477] LOG:  starting logical decoding for slot "pg_17694_sync_17501_7712949443355664422"
+2026-11-27 20:48:56.631 UTC [477] DETAIL:  Streaming transactions committing after 0/1F78540, reading WAL from 0/1F78508.
+2026-11-27 20:48:56.631 UTC [477] STATEMENT:  START_REPLICATION SLOT "pg_17694_sync_17501_7712949443355664422" LOGICAL 0/1F78540 (proto_version '4', origin 'any', publication_names '"pub_promovida_r2"')
+2026-11-27 20:48:56.631 UTC [477] LOG:  logical decoding found consistent point at 0/1F78508
+2026-11-27 20:48:56.631 UTC [477] DETAIL:  There are no running transactions.
+2026-11-27 20:48:56.631 UTC [477] STATEMENT:  START_REPLICATION SLOT "pg_17694_sync_17501_7712949443355664422" LOGICAL 0/1F78540 (proto_version '4', origin 'any', publication_names '"pub_promovida_r2"')
+2026-11-27 20:48:56.691 UTC [478] LOG:  logical decoding found consistent point at 0/1F78540
+2026-11-27 20:48:56.691 UTC [478] DETAIL:  There are no running transactions.
+2026-11-27 20:48:56.691 UTC [478] STATEMENT:  CREATE_REPLICATION_SLOT "pg_17694_sync_17434_7712949443355664422" LOGICAL pgoutput (SNAPSHOT 'use')
+2026-11-27 20:48:56.717 UTC [478] LOG:  starting logical decoding for slot "pg_17694_sync_17434_7712949443355664422"
+2026-11-27 20:48:56.717 UTC [478] DETAIL:  Streaming transactions committing after 0/1F78578, reading WAL from 0/1F78540.
+2026-11-27 20:48:56.717 UTC [478] STATEMENT:  START_REPLICATION SLOT "pg_17694_sync_17434_7712949443355664422" LOGICAL 0/1F78578 (proto_version '4', origin 'any', publication_names '"pub_promovida_r2"')
+2026-11-27 20:48:56.717 UTC [478] LOG:  logical decoding found consistent point at 0/1F78540
+2026-11-27 20:48:56.717 UTC [478] DETAIL:  There are no running transactions.
+2026-11-27 20:48:56.717 UTC [478] STATEMENT:  START_REPLICATION SLOT "pg_17694_sync_17434_7712949443355664422" LOGICAL 0/1F78578 (proto_version '4', origin 'any', publication_names '"pub_promovida_r2"')
+2026-11-27 20:49:33.084 UTC [732] FATAL:  password authentication failed for user "root"
+2026-11-27 20:49:33.084 UTC [732] DETAIL:  Role "root" does not exist.
+	Connection matched file "/var/lib/postgresql/data/pg_hba.conf" line 128: "host all all all scram-sha-256"
+2026-11-27 20:49:33.305 UTC [646] ERROR:  terminating logical replication worker due to timeout
+2026-11-27 20:49:33.312 UTC [1] LOG:  background worker "logical replication worker" (PID 646) exited with exit code 1
+2026-11-27 20:49:33.313 UTC [749] LOG:  logical replication apply worker for subscription "sub_frag_r2" has started
+2026-11-27 20:49:37.280 UTC [749] ERROR:  could not connect to the publisher: could not translate host name "pg-centro" to address: Name or service not known
+2026-11-27 20:49:37.285 UTC [1] LOG:  background worker "logical replication worker" (PID 749) exited with exit code 1
+2026-11-27 20:49:38.314 UTC [765] LOG:  logical replication apply worker for subscription "sub_frag_r2" has started
+2026-11-27 20:49:42.278 UTC [765] ERROR:  could not connect to the publisher: could not translate host name "pg-centro" to address: Name or service not known
+2026-11-27 20:49:42.282 UTC [1] LOG:  background worker "logical replication worker" (PID 765) exited with exit code 1
+2026-11-27 20:49:43.313 UTC [785] LOG:  logical replication apply worker for subscription "sub_frag_r2" has started
+2026-11-27 20:49:47.265 UTC [785] ERROR:  could not connect to the publisher: could not translate host name "pg-centro" to address: Name or service not known
+2026-11-27 20:49:47.270 UTC [1] LOG:  background worker "logical replication worker" (PID 785) exited with exit code 1
+2026-11-27 20:49:48.315 UTC [799] LOG:  logical replication apply worker for subscription "sub_frag_r2" has started
+2026-11-27 20:49:52.317 UTC [799] ERROR:  could not connect to the publisher: could not translate host name "pg-centro" to address: Name or service not known
+2026-11-27 20:49:52.322 UTC [1] LOG:  background worker "logical replication worker" (PID 799) exited with exit code 1
+2026-11-27 20:49:53.316 UTC [820] LOG:  logical replication apply worker for subscription "sub_frag_r2" has started
+2026-11-27 20:49:57.303 UTC [820] ERROR:  could not connect to the publisher: could not translate host name "pg-centro" to address: Name or service not known
+2026-11-27 20:49:57.308 UTC [1] LOG:  background worker "logical replication worker" (PID 820) exited with exit code 1
+2026-11-27 20:50:00.321 UTC [895] FATAL:  password authentication failed for user "root"
+2026-11-27 20:50:00.321 UTC [895] DETAIL:  Role "root" does not exist.
+	Connection matched file "/var/lib/postgresql/data/pg_hba.conf" line 128: "host all all all scram-sha-256"
+2026-11-27 20:50:01.449 UTC [942] LOG:  logical decoding found consistent point at 0/21CFFC8
+2026-11-27 20:50:01.449 UTC [942] DETAIL:  There are no running transactions.
+2026-11-27 20:50:01.449 UTC [942] STATEMENT:  CREATE_REPLICATION_SLOT "sub_promovida_r2" LOGICAL pgoutput (SNAPSHOT 'nothing')
+2026-11-27 20:50:01.539 UTC [945] LOG:  starting logical decoding for slot "sub_promovida_r2"
+2026-11-27 20:50:01.539 UTC [945] DETAIL:  Streaming transactions committing after 0/21D0000, reading WAL from 0/21CFFC8.
+2026-11-27 20:50:01.539 UTC [945] STATEMENT:  START_REPLICATION SLOT "sub_promovida_r2" LOGICAL 0/0 (proto_version '4', origin 'any', publication_names '"pub_promovida_r2"')
+2026-11-27 20:50:01.539 UTC [945] LOG:  logical decoding found consistent point at 0/21CFFC8
+2026-11-27 20:50:01.539 UTC [945] DETAIL:  There are no running transactions.
+2026-11-27 20:50:01.539 UTC [945] STATEMENT:  START_REPLICATION SLOT "sub_promovida_r2" LOGICAL 0/0 (proto_version '4', origin 'any', publication_names '"pub_promovida_r2"')
+2026-11-27 20:50:01.640 UTC [949] LOG:  logical decoding found consistent point at 0/21D0018
+2026-11-27 20:50:01.640 UTC [949] DETAIL:  There are no running transactions.
+2026-11-27 20:50:01.640 UTC [949] STATEMENT:  CREATE_REPLICATION_SLOT "pg_18298_sync_17888_7712949443355664422" LOGICAL pgoutput (SNAPSHOT 'use')
+2026-11-27 20:50:01.676 UTC [949] LOG:  starting logical decoding for slot "pg_18298_sync_17888_7712949443355664422"
+2026-11-27 20:50:01.676 UTC [949] DETAIL:  Streaming transactions committing after 0/21D0050, reading WAL from 0/21D0018.
+2026-11-27 20:50:01.676 UTC [949] STATEMENT:  START_REPLICATION SLOT "pg_18298_sync_17888_7712949443355664422" LOGICAL 0/21D0050 (proto_version '4', origin 'any', publication_names '"pub_promovida_r2"')
+2026-11-27 20:50:01.676 UTC [949] LOG:  logical decoding found consistent point at 0/21D0018
+2026-11-27 20:50:01.676 UTC [949] DETAIL:  There are no running transactions.
+2026-11-27 20:50:01.676 UTC [949] STATEMENT:  START_REPLICATION SLOT "pg_18298_sync_17888_7712949443355664422" LOGICAL 0/21D0050 (proto_version '4', origin 'any', publication_names '"pub_promovida_r2"')
+2026-11-27 20:50:01.683 UTC [950] LOG:  logical decoding found consistent point at 0/21D0050
+2026-11-27 20:50:01.683 UTC [950] DETAIL:  There are no running transactions.
+2026-11-27 20:50:01.683 UTC [950] STATEMENT:  CREATE_REPLICATION_SLOT "pg_18298_sync_17793_7712949443355664422" LOGICAL pgoutput (SNAPSHOT 'use')
+2026-11-27 20:50:01.724 UTC [950] LOG:  starting logical decoding for slot "pg_18298_sync_17793_7712949443355664422"
+2026-11-27 20:50:01.724 UTC [950] DETAIL:  Streaming transactions committing after 0/21D0088, reading WAL from 0/21D0050.
+2026-11-27 20:50:01.724 UTC [950] STATEMENT:  START_REPLICATION SLOT "pg_18298_sync_17793_7712949443355664422" LOGICAL 0/21D0088 (proto_version '4', origin 'any', publication_names '"pub_promovida_r2"')
+2026-11-27 20:50:01.724 UTC [950] LOG:  logical decoding found consistent point at 0/21D0050
+2026-11-27 20:50:01.724 UTC [950] DETAIL:  There are no running transactions.
+2026-11-27 20:50:01.724 UTC [950] STATEMENT:  START_REPLICATION SLOT "pg_18298_sync_17793_7712949443355664422" LOGICAL 0/21D0088 (proto_version '4', origin 'any', publication_names '"pub_promovida_r2"')
+2026-11-27 20:50:01.795 UTC [952] LOG:  logical decoding found consistent point at 0/21D0088
+2026-11-27 20:50:01.795 UTC [952] DETAIL:  There are no running transactions.
+2026-11-27 20:50:01.795 UTC [952] STATEMENT:  CREATE_REPLICATION_SLOT "pg_18298_sync_17971_7712949443355664422" LOGICAL pgoutput (SNAPSHOT 'use')
+2026-11-27 20:50:01.815 UTC [953] LOG:  logical decoding found consistent point at 0/21D00C0
+2026-11-27 20:50:01.815 UTC [953] DETAIL:  There are no running transactions.
+2026-11-27 20:50:01.815 UTC [953] STATEMENT:  CREATE_REPLICATION_SLOT "pg_18298_sync_18107_7712949443355664422" LOGICAL pgoutput (SNAPSHOT 'use')
+2026-11-27 20:50:01.828 UTC [952] LOG:  starting logical decoding for slot "pg_18298_sync_17971_7712949443355664422"
+2026-11-27 20:50:01.828 UTC [952] DETAIL:  Streaming transactions committing after 0/21D00C0, reading WAL from 0/21D0088.
+2026-11-27 20:50:01.828 UTC [952] STATEMENT:  START_REPLICATION SLOT "pg_18298_sync_17971_7712949443355664422" LOGICAL 0/21D00C0 (proto_version '4', origin 'any', publication_names '"pub_promovida_r2"')
+2026-11-27 20:50:01.828 UTC [952] LOG:  logical decoding found consistent point at 0/21D0088
+2026-11-27 20:50:01.828 UTC [952] DETAIL:  There are no running transactions.
+2026-11-27 20:50:01.828 UTC [952] STATEMENT:  START_REPLICATION SLOT "pg_18298_sync_17971_7712949443355664422" LOGICAL 0/21D00C0 (proto_version '4', origin 'any', publication_names '"pub_promovida_r2"')
+2026-11-27 20:50:01.873 UTC [953] LOG:  starting logical decoding for slot "pg_18298_sync_18107_7712949443355664422"
+2026-11-27 20:50:01.873 UTC [953] DETAIL:  Streaming transactions committing after 0/21D00F8, reading WAL from 0/21D00C0.
+2026-11-27 20:50:01.873 UTC [953] STATEMENT:  START_REPLICATION SLOT "pg_18298_sync_18107_7712949443355664422" LOGICAL 0/21D00F8 (proto_version '4', origin 'any', publication_names '"pub_promovida_r2"')
+2026-11-27 20:50:01.873 UTC [953] LOG:  logical decoding found consistent point at 0/21D00C0
+2026-11-27 20:50:01.873 UTC [953] DETAIL:  There are no running transactions.
+2026-11-27 20:50:01.873 UTC [953] STATEMENT:  START_REPLICATION SLOT "pg_18298_sync_18107_7712949443355664422" LOGICAL 0/21D00F8 (proto_version '4', origin 'any', publication_names '"pub_promovida_r2"')
+2026-11-27 20:50:01.948 UTC [960] LOG:  logical decoding found consistent point at 0/21D02B8
+2026-11-27 20:50:01.948 UTC [960] DETAIL:  There are no running transactions.
+2026-11-27 20:50:01.948 UTC [960] STATEMENT:  CREATE_REPLICATION_SLOT "pg_18298_sync_18040_7712949443355664422" LOGICAL pgoutput (SNAPSHOT 'use')
+2026-11-27 20:50:01.975 UTC [960] LOG:  starting logical decoding for slot "pg_18298_sync_18040_7712949443355664422"
+2026-11-27 20:50:01.975 UTC [960] DETAIL:  Streaming transactions committing after 0/21D02F0, reading WAL from 0/21D02B8.
+2026-11-27 20:50:01.975 UTC [960] STATEMENT:  START_REPLICATION SLOT "pg_18298_sync_18040_7712949443355664422" LOGICAL 0/21D02F0 (proto_version '4', origin 'any', publication_names '"pub_promovida_r2"')
+2026-11-27 20:50:01.976 UTC [960] LOG:  logical decoding found consistent point at 0/21D02B8
+2026-11-27 20:50:01.976 UTC [960] DETAIL:  There are no running transactions.
+2026-11-27 20:50:01.976 UTC [960] STATEMENT:  START_REPLICATION SLOT "pg_18298_sync_18040_7712949443355664422" LOGICAL 0/21D02F0 (proto_version '4', origin 'any', publication_names '"pub_promovida_r2"')

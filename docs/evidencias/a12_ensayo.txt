@@ -1,0 +1,79 @@
+﻿A12 · Ensayo de pérdida de nodo y partición de red — 2026-11-27 14:47
+[14:47:57] Topología: 'centro' (región 2) cae; su copia es 'sur'; tercer nodo 'norte'; escritor de globales 'norte'.
+[14:47:57] >>> Reinstalando el laboratorio limpio (iniciar_lab.ps1)...
+[14:48:22]     laboratorio listo (A9 y A11 en OK)
+[14:48:22] === ESCENARIO 1: pérdida de nodo ===
+[14:48:22] 1. La API escribe en 'centro' (región 2).
+[14:48:23]   OK  el dato llegó a la copia en 'sur'
+[14:48:23] 2. Antes de promover, 'sur' NO acepta escrituras de la región 2:
+[14:48:23]   OK  rechazada por RLS: ERROR:  new row violates row-level security policy for table "usuario"
+[14:48:23] 3. Se APAGA 'centro' (docker stop).
+[14:48:24]     pg-centro
+[14:48:24] 4. promover.sh centro (desde 'sur'):
+[14:48:52]     [2026-11-27 20:48:24] === Promoci├│n: el nodo 'centro' (regi├│n 2) se reporta ca├¡do ===
+[14:48:52]     [2026-11-27 20:48:24] Su copia est├í en 'sur'; el tercer nodo es 'norte'.
+[14:48:52]     [2026-11-27 20:48:33] Ronda 1/3: 'centro' no responde desde aqu├¡ y 'norte' no lo ve conectado.
+[14:48:52]     [2026-11-27 20:48:42] Ronda 2/3: 'centro' no responde desde aqu├¡ y 'norte' no lo ve conectado.
+[14:48:52]     [2026-11-27 20:48:51] Ronda 3/3: 'centro' no responde desde aqu├¡ y 'norte' no lo ve conectado.
+[14:48:52]     [2026-11-27 20:48:51] Qu├│rum: 2 de 3 nodos ven ca├¡do a 'centro'.
+[14:48:52]     [2026-11-27 20:48:51] En 'sur': suscripci├│n sub_frag_r2 desactivada; app.region_local '3' -> '3,2'.
+[14:48:52]     [2026-11-27 20:48:52] Sesiones de la API cerradas en 'sur' para que reconecten: 0.
+[14:48:52]     [2026-11-27 20:48:52] === Listo: la regi├│n 2 ahora la atiende 'sur'. ===
+[14:48:52]     [2026-11-27 20:48:52] Siguiente paso: en la API, marcar la regi├│n 2 -> nodo 'sur'.
+[14:48:52]     [2026-11-27 20:48:52] Cuando 'centro' regrese: reincorporar.sh centro (se queda como copia).
+[14:48:52] 5. Ahora 'sur' sí acepta escrituras de la región 2:
+[14:48:52]   OK  escritura aceptada
+[14:48:52] 6. Se ENCIENDE 'centro' otra vez (docker start).
+[14:48:53]     pg-centro
+[14:48:54] 7. reincorporar.sh centro (desde 'sur'):
+[14:48:57]     [2026-11-27 20:48:55] === Reincorporaci├│n: 'centro' (regi├│n 2) regresa como copia de 'sur' ===
+[14:48:57]     [2026-11-27 20:48:55] En 'centro': ya no atiende regiones y la API ah├¡ es de solo lectura.
+[14:48:57]     [2026-11-27 20:48:55] Suscripci├│n vieja sub_frag_r2 quitada de 'sur' y publicaci├│n pub_frag quitada de 'centro'.
+[14:48:57]     [2026-11-27 20:48:55] En 'centro' se descart├│ su copia local de la regi├│n 2 (1 usuarios, 0 plantas, 0 cuidados); se vuelve a copiar del primario.
+[14:48:57]     [2026-11-27 20:48:56] 'centro' suscrito a 'sur' (sub_promovida_r2); copiando la regi├│n 2...
+[14:48:57]     [2026-11-27 20:48:57] Sincronizado: usuario,planta,sensor,cuidado,alerta de la regi├│n 2 = 2,0,0,0,0 en ambos nodos.
+[14:48:57]     [2026-11-27 20:48:57] === Listo: 'centro' es copia de la regi├│n 2; el primario sigue siendo 'sur'. ===
+[14:48:57]     [2026-11-27 20:48:57] Volver a ser primario es un cambio planeado (D-01 ┬º3).
+[14:48:57] 8. Comprobaciones en 'centro' (ahora copia):
+[14:48:58]   OK  'centro' recibió lo que se escribió durante la caída
+[14:48:58]   OK  'centro' ya no acepta escrituras de la API: ERROR:  new row violates row-level security policy for table "usuario"
+[14:48:58] >>> Reinstalando el laboratorio limpio (iniciar_lab.ps1)...
+[14:49:17]     laboratorio listo (A9 y A11 en OK)
+[14:49:17] === ESCENARIO 2: partición de red ===
+[14:49:17] 1. La API escribe en 'centro' (región 2).
+[14:49:18]   OK  el dato llegó a la copia en 'sur'
+[14:49:18] 2. Se AÍSLA 'centro' de la red (docker network disconnect); sigue encendido.
+[14:49:18] 3. Un cliente le escribe a 'centro' aislado (esto no debe sobrevivir):
+[14:49:19]     en 'centro' aislado: escrito
+[14:49:19] 4. Esperando a que 'norte' detecte el corte (wal_sender_timeout = 15 s)...
+[14:49:32]   OK  'norte' ya no ve a 'centro' conectado
+[14:49:32] 5. promover.sh centro (desde 'sur'):
+[14:49:56]     [2026-11-27 20:49:33] === Promoci├│n: el nodo 'centro' (regi├│n 2) se reporta ca├¡do ===
+[14:49:56]     [2026-11-27 20:49:33] Su copia est├í en 'sur'; el tercer nodo es 'norte'.
+[14:49:56]     [2026-11-27 20:49:37] Ronda 1/3: 'centro' no responde desde aqu├¡ y 'norte' no lo ve conectado.
+[14:49:56]     [2026-11-27 20:49:46] Ronda 2/3: 'centro' no responde desde aqu├¡ y 'norte' no lo ve conectado.
+[14:49:56]     [2026-11-27 20:49:55] Ronda 3/3: 'centro' no responde desde aqu├¡ y 'norte' no lo ve conectado.
+[14:49:56]     [2026-11-27 20:49:55] Qu├│rum: 2 de 3 nodos ven ca├¡do a 'centro'.
+[14:49:56]     [2026-11-27 20:49:55] En 'sur': suscripci├│n sub_frag_r2 desactivada; app.region_local '3' -> '3,2'.
+[14:49:56]     [2026-11-27 20:49:56] Sesiones de la API cerradas en 'sur' para que reconecten: 0.
+[14:49:56]     [2026-11-27 20:49:56] === Listo: la regi├│n 2 ahora la atiende 'sur'. ===
+[14:49:56]     [2026-11-27 20:49:56] Siguiente paso: en la API, marcar la regi├│n 2 -> nodo 'sur'.
+[14:49:56]     [2026-11-27 20:49:56] Cuando 'centro' regrese: reincorporar.sh centro (se queda como copia).
+[14:49:56] 6. 'sur' escribe la región 2 durante la partición:
+[14:49:56]   OK  escritura aceptada
+[14:49:56] 7. Se REPARA la red (docker network connect).
+[14:49:59] 8. reincorporar.sh centro (desde 'sur'):
+[14:50:02]     [2026-11-27 20:50:00] === Reincorporaci├│n: 'centro' (regi├│n 2) regresa como copia de 'sur' ===
+[14:50:02]     [2026-11-27 20:50:00] En 'centro': ya no atiende regiones y la API ah├¡ es de solo lectura.
+[14:50:03]     [2026-11-27 20:50:01] Suscripci├│n vieja sub_frag_r2 quitada de 'sur' y publicaci├│n pub_frag quitada de 'centro'.
+[14:50:03]     [2026-11-27 20:50:01] En 'centro' se descart├│ su copia local de la regi├│n 2 (2 usuarios, 0 plantas, 0 cuidados); se vuelve a copiar del primario.
+[14:50:03]     [2026-11-27 20:50:01] 'centro' suscrito a 'sur' (sub_promovida_r2); copiando la regi├│n 2...
+[14:50:03]     [2026-11-27 20:50:02] Sincronizado: usuario,planta,sensor,cuidado,alerta de la regi├│n 2 = 2,0,0,0,0 en ambos nodos.
+[14:50:03]     [2026-11-27 20:50:02] === Listo: 'centro' es copia de la regi├│n 2; el primario sigue siendo 'sur'. ===
+[14:50:03]     [2026-11-27 20:50:02] Volver a ser primario es un cambio planeado (D-01 ┬º3).
+[14:50:03] 9. Comprobaciones:
+[14:50:03]   OK  'centro' recibió lo que 'sur' escribió durante la partición
+[14:50:03]   OK  la escritura hecha en 'centro' aislado se descartó (RPO declarado en D-01 §8)
+[14:50:03]   OK  la escritura aislada nunca llegó a 'sur': no hubo dos primarios escribiendo la misma región
+[14:50:04] === ENSAYO DE A12 COMPLETO: los 2 escenarios pasaron ===
+[14:50:04] Evidencias: docs\evidencias\a12_ensayo.txt y a12_logs_<nodo>.txt
