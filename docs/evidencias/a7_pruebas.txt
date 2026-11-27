@@ -1,0 +1,93 @@
+BEGIN
+SET
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+GRANT
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+--- Cuenta de servicio (plantas_api) ---
+SET
+psql:/tmp/db/tests/a7_pruebas_roles.sql:82: NOTICE:  OK    01 leer y actualizar usuarios (como plantas_api)
+ 
+
+psql:/tmp/db/tests/a7_pruebas_roles.sql:84: NOTICE:  OK    02 registrar un riego con el procedimiento de A5 (como plantas_api)
+ 
+
+psql:/tmp/db/tests/a7_pruebas_roles.sql:87: NOTICE:  OK    03 la lectura de humedad dispara la alerta (trigger de A6) (como plantas_api)
+ 
+
+psql:/tmp/db/tests/a7_pruebas_roles.sql:90: NOTICE:  OK    04 NO puede borrar una tabla (DROP TABLE) (como plantas_api)  (must be owner of table cuidado)
+ 
+
+psql:/tmp/db/tests/a7_pruebas_roles.sql:92: NOTICE:  OK    05 NO puede vaciar una tabla (TRUNCATE) (como plantas_api)  (permission denied for table alerta)
+ 
+
+psql:/tmp/db/tests/a7_pruebas_roles.sql:94: NOTICE:  OK    06 NO puede cambiar la estructura (ALTER TABLE) (como plantas_api)  (must be owner of table usuario)
+ 
+
+psql:/tmp/db/tests/a7_pruebas_roles.sql:96: NOTICE:  OK    07 NO puede crear tablas en el esquema app (como plantas_api)  (permission denied for schema app)
+ 
+
+psql:/tmp/db/tests/a7_pruebas_roles.sql:99: NOTICE:  OK    08 NO puede escribir en la auditoría (falsificar) (como plantas_api)  (permission denied for table auditoria)
+ 
+
+psql:/tmp/db/tests/a7_pruebas_roles.sql:101: NOTICE:  OK    09 NO puede borrar la auditoría (borrar huellas) (como plantas_api)  (permission denied for table auditoria)
+ 
+
+psql:/tmp/db/tests/a7_pruebas_roles.sql:103: NOTICE:  OK    10 NO puede leer la auditoría (como plantas_api)  (permission denied for table auditoria)
+ 
+
+psql:/tmp/db/tests/a7_pruebas_roles.sql:105: NOTICE:  OK    11 NO puede modificar el catálogo de especies (como plantas_api)  (permission denied for table especie)
+ 
+
+psql:/tmp/db/tests/a7_pruebas_roles.sql:107: NOTICE:  OK    12 NO puede darse más permisos ni crear roles (como plantas_api)  (permission denied to create role)
+ 
+
+RESET
+psql:/tmp/db/tests/a7_pruebas_roles.sql:113: NOTICE:  OK    13 aunque la API no puede escribir en la auditoría, sus cambios sí quedaron auditados
+ 
+
+psql:/tmp/db/tests/a7_pruebas_roles.sql:117: NOTICE:  OK    14 y la alerta de humedad baja sí se creó
+ 
+
+--- Cuenta de reportes (plantas_reportes) ---
+SET
+psql:/tmp/db/tests/a7_pruebas_roles.sql:125: NOTICE:  OK    15 NO puede leer la tabla usuario directamente (como plantas_reportes)  (permission denied for table usuario)
+ 
+
+psql:/tmp/db/tests/a7_pruebas_roles.sql:127: NOTICE:  OK    16 NO puede leer las notas de los cuidados (como plantas_reportes)  (permission denied for table cuidado)
+ 
+
+psql:/tmp/db/tests/a7_pruebas_roles.sql:129: NOTICE:  OK    17 NO puede modificar nada (como plantas_reportes)  (permission denied for table alerta)
+ 
+
+psql:/tmp/db/tests/a7_pruebas_roles.sql:134: NOTICE:  OK    18 en la vista ve el correo, nombre y apellidos enmascarados
+ 
+
+psql:/tmp/db/tests/a7_pruebas_roles.sql:139: NOTICE:  OK    19 las vistas no tienen password_hash, ubicación ni notas
+ 
+
+psql:/tmp/db/tests/a7_pruebas_roles.sql:142: NOTICE:  OK    20 puede hacer reportes con las vistas (riegos por planta)
+ 
+
+RESET
+--- Cuenta de administración (plantas_admin) ---
+SET
+psql:/tmp/db/tests/a7_pruebas_roles.sql:152: NOTICE:  OK    21 puede leer la auditoría (como plantas_admin)
+ 
+
+psql:/tmp/db/tests/a7_pruebas_roles.sql:154: NOTICE:  OK    22 puede cambiar la estructura (es dueña de los objetos) (como plantas_admin)
+ 
+
+psql:/tmp/db/tests/a7_pruebas_roles.sql:156: NOTICE:  OK    23 plantas_admin NO es superusuario
+ 
+
+RESET
+psql:/tmp/db/tests/a7_pruebas_roles.sql:163: NOTICE:  OK    24 el dueño de las tablas es plantas_owner, no postgres
+ 
+
+ROLLBACK
+Pruebas de A7 terminadas: si todas dicen OK, A7 cumple.
