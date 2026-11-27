@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  pruebas-sql:
+    name: Pruebas de la base (PostgreSQL 16)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ci_postgres
+          POSTGRES_DB: plantas
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGUSER: postgres
+      PGPASSWORD: ci_postgres
+      PGDATABASE: plantas
+    steps:
+      - name: Descargar el repositorio
+        uses: actions/checkout@v4
+
+      - name: Crear el esquema (01 a 05)
+        run: |
+          for f in db/01_esquema.sql db/02_datos_base.sql db/03_indices.sql db/04_funciones.sql db/05_triggers.sql; do
+            psql -v ON_ERROR_STOP=1 -f "$f"
+          done
+
+      - name: Crear roles (06)
+        run: |
+          psql -v ON_ERROR_STOP=1 -v pass_admin=ci_admin -v pass_api=ci_api -v pass_reportes=ci_reportes -f db/06_roles.sql
+
+      - name: Correr las pruebas
+        run: |
+          for f in db/tests/a3_pruebas_esquema.sql db/tests/a5_pruebas_funciones.sql db/tests/a6_pruebas_triggers.sql db/tests/a7_pruebas_roles.sql; do
+            echo "== $f"
+            psql -v ON_ERROR_STOP=1 -f "$f"
+          done
