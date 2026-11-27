@@ -14,7 +14,7 @@
 --      ya se había corrido antes por separado.
 --
 -- Cómo correrlo (después de 01, 02 y 03):
---   psql -U postgres -d plantas -f db/pruebas/a4_explain_indices.sql
+--   psql -U postgres -d plantas -f db/tests/a4_explain_indices.sql
 -- A18 repite estas mismas consultas con los 100 000 registros de A13.
 -- =====================================================================
 
