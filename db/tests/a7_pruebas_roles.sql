@@ -17,6 +17,10 @@
 
 BEGIN;
 SET search_path TO app;
+-- Los datos de prueba son de la región 2 (Centro). Con RLS (A11) la API
+-- solo escribe en las regiones del nodo, así que la prueba se declara
+-- de esa región, sin importar en qué nodo corra.
+SET LOCAL app.region_local = '2';
 
 CREATE FUNCTION pg_temp.verifica(prueba text, condicion boolean)
 RETURNS void LANGUAGE plpgsql AS $$

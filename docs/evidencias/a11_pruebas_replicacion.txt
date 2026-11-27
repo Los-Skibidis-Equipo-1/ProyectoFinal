@@ -1,0 +1,183 @@
+=== 0. Esperar a que termine la copia inicial en los 3 nodos ===
+You are now connected to database "plantas" as user "postgres" on host "pg-norte" (address "172.23.0.2") at port "5432".
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+GRANT
+psql:/tmp/db/tests/a11_pruebas_replicacion.sql:63: NOTICE:  OK    00a Norte terminó la copia inicial de sus suscripciones  (0.00 s)
+ 
+
+You are now connected to database "plantas" as user "postgres" on host "pg-centro" (address "172.23.0.3") at port "5432".
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+GRANT
+psql:/tmp/db/tests/a11_pruebas_replicacion.sql:67: NOTICE:  OK    00b Centro terminó la copia inicial de sus suscripciones  (0.00 s)
+ 
+
+You are now connected to database "plantas" as user "postgres" on host "pg-sur" (address "172.23.0.4") at port "5432".
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+GRANT
+psql:/tmp/db/tests/a11_pruebas_replicacion.sql:71: NOTICE:  OK    00c Sur terminó la copia inicial de sus suscripciones  (0.00 s)
+ 
+
+=== 1. Escritor de las globales ( norte ) ===
+You are now connected to database "plantas" as user "postgres" on host "pg-norte" (address "172.23.0.2") at port "5432".
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+GRANT
+SET
+psql:/tmp/db/tests/a11_pruebas_replicacion.sql:81: NOTICE:  OK    01 el directorio es síncrono: synchronous_standby_names = ANY 1 (...)
+ 
+
+psql:/tmp/db/tests/a11_pruebas_replicacion.sql:83: NOTICE:  OK    02 por defecto el escritor confirma sin esperar (synchronous_commit = local)
+ 
+
+psql:/tmp/db/tests/a11_pruebas_replicacion.sql:86: NOTICE:  OK    03 los 2 suscriptores de las globales están conectados en modo quórum  (0.00 s)
+ 
+
+INSERT 0 1
+INSERT 0 2
+psql:/tmp/db/tests/a11_pruebas_replicacion.sql:95: NOTICE:  OK    04 reserva escrita en el escritor
+ 
+
+=== 2. Norte (primario de la región 1) ===
+You are now connected to database "plantas" as user "postgres".
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+GRANT
+SET
+psql:/tmp/db/tests/a11_pruebas_replicacion.sql:105: NOTICE:  OK    05 la especie nueva ya está en Norte  (0.00 s)
+ 
+
+SET
+INSERT 0 1
+INSERT 0 1
+ 04e25db2-e8e4-47a5-a963-71ce6defda4e
+
+UPDATE 1
+psql:/tmp/db/tests/a11_pruebas_replicacion.sql:121: NOTICE:  OK    06 RLS: en Norte la API NO puede escribir filas de la región 2  (new row violates row-level security policy for table "usuario")
+ 
+
+psql:/tmp/db/tests/a11_pruebas_replicacion.sql:124: NOTICE:  OK    07 la API NO puede escribir directo en una partición  (permission denied for table usuario_r1)
+ 
+
+RESET
+psql:/tmp/db/tests/a11_pruebas_replicacion.sql:128: NOTICE:  OK    08 en Norte quedó 1 alerta de humedad baja (trigger de A6)
+ 
+
+=== 3. Centro (copia de la región 1, primario de la región 2) ===
+You are now connected to database "plantas" as user "postgres" on host "pg-centro" (address "172.23.0.3") at port "5432".
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+GRANT
+SET
+psql:/tmp/db/tests/a11_pruebas_replicacion.sql:138: NOTICE:  OK    09 la usuaria de Norte llegó a su copia en Centro (usuario_r1)  (0.00 s)
+ 
+
+psql:/tmp/db/tests/a11_pruebas_replicacion.sql:142: NOTICE:  OK    10 también su planta, su riego y su alerta  (0.00 s)
+ 
+
+psql:/tmp/db/tests/a11_pruebas_replicacion.sql:144: NOTICE:  OK    11 la alerta NO se duplicó en la copia (los triggers no corren al replicar)
+ 
+
+psql:/tmp/db/tests/a11_pruebas_replicacion.sql:146: NOTICE:  OK    12 la auditoría es local: Centro no tiene la auditoría de Norte
+ 
+
+psql:/tmp/db/tests/a11_pruebas_replicacion.sql:149: NOTICE:  OK    13 el directorio y la especie llegaron a Centro  (0.00 s)
+ 
+
+SET
+psql:/tmp/db/tests/a11_pruebas_replicacion.sql:154: NOTICE:  OK    14 RLS: en Centro la API NO puede crear filas en la copia de la región 1  (new row violates row-level security policy for table "usuario")
+ 
+
+UPDATE 0
+psql:/tmp/db/tests/a11_pruebas_replicacion.sql:161: NOTICE:  OK    15 RLS: Centro no es el escritor, la API NO puede escribir el directorio  (new row violates row-level security policy for table "directorio_correo")
+ 
+
+INSERT 0 1
+RESET
+psql:/tmp/db/tests/a11_pruebas_replicacion.sql:168: NOTICE:  OK    16 RLS: en Centro la API NO pudo modificar la copia de la región 1 (UPDATE 0)
+ 
+
+psql:/tmp/db/tests/a11_pruebas_replicacion.sql:170: NOTICE:  OK    17 en Centro la API sí escribe en su propia región
+ 
+
+=== 4. Sur (copia de la región 2) ===
+You are now connected to database "plantas" as user "postgres" on host "pg-sur" (address "172.23.0.4") at port "5432".
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+GRANT
+SET
+psql:/tmp/db/tests/a11_pruebas_replicacion.sql:180: NOTICE:  OK    18 el usuario de Centro llegó a su copia en Sur (usuario_r2)  (0.00 s)
+ 
+
+psql:/tmp/db/tests/a11_pruebas_replicacion.sql:182: NOTICE:  OK    19 Sur NO guarda la región 1 (no es su copia en el anillo)
+ 
+
+psql:/tmp/db/tests/a11_pruebas_replicacion.sql:184: NOTICE:  OK    20 el directorio también llegó a Sur  (0.00 s)
+ 
+
+=== 5. Actualizaciones y borrados también se replican ===
+You are now connected to database "plantas" as user "postgres" on host "pg-norte" (address "172.23.0.2") at port "5432".
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+GRANT
+UPDATE 1
+You are now connected to database "plantas" as user "postgres" on host "pg-centro" (address "172.23.0.3") at port "5432".
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+GRANT
+psql:/tmp/db/tests/a11_pruebas_replicacion.sql:196: NOTICE:  OK    21 el UPDATE en Norte llegó a la copia en Centro  (0.00 s)
+ 
+
+DELETE 1
+You are now connected to database "plantas" as user "postgres" on host "pg-norte" (address "172.23.0.2") at port "5432".
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+GRANT
+DELETE 1
+You are now connected to database "plantas" as user "postgres" on host "pg-centro" (address "172.23.0.3") at port "5432".
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+GRANT
+psql:/tmp/db/tests/a11_pruebas_replicacion.sql:210: NOTICE:  OK    22 el borrado en cascada de Norte llegó a la copia en Centro  (0.00 s)
+ 
+
+You are now connected to database "plantas" as user "postgres" on host "pg-sur" (address "172.23.0.4") at port "5432".
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+GRANT
+psql:/tmp/db/tests/a11_pruebas_replicacion.sql:215: NOTICE:  OK    23 el borrado en Centro llegó a la copia en Sur  (0.00 s)
+ 
+
+You are now connected to database "plantas" as user "postgres" on host "pg-norte" (address "172.23.0.2") at port "5432".
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+GRANT
+psql:/tmp/db/tests/a11_pruebas_replicacion.sql:222: NOTICE:  OK    24 ya no quedan plantas de la especie de prueba en el escritor  (0.01 s)
+ 
+
+DELETE 2
+DELETE 1
+You are now connected to database "plantas" as user "postgres" on host "pg-sur" (address "172.23.0.4") at port "5432".
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+GRANT
+psql:/tmp/db/tests/a11_pruebas_replicacion.sql:230: NOTICE:  OK    25 el borrado del directorio y la especie llegó a Sur  (0.00 s)
+ 
+
+Pruebas de A11 terminadas: si todas dicen OK, la replicación cumple.
