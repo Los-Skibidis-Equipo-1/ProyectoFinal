@@ -1,0 +1,76 @@
+BEGIN
+SET
+CREATE FUNCTION
+CREATE FUNCTION
+SET
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+--- 1. Fecha de actualización ---
+UPDATE 1
+psql:/tmp/db/tests/a6_pruebas_triggers.sql:69: NOTICE:  OK    01 UPDATE de usuario pone fecha_actualizacion = ahora
+ 
+
+UPDATE 1
+psql:/tmp/db/tests/a6_pruebas_triggers.sql:75: NOTICE:  OK    02 no se puede poner una fecha_actualizacion falsa
+ 
+
+UPDATE 1
+psql:/tmp/db/tests/a6_pruebas_triggers.sql:81: NOTICE:  OK    03 UPDATE de planta también actualiza su fecha
+ 
+
+--- 2. Alertas por humedad (rango ideal 40–60 %) ---
+UPDATE 1
+psql:/tmp/db/tests/a6_pruebas_triggers.sql:87: NOTICE:  OK    04 humedad 25 % crea una alerta humedad_baja pendiente
+ 
+
+UPDATE 1
+psql:/tmp/db/tests/a6_pruebas_triggers.sql:92: NOTICE:  OK    05 otra lectura baja (22 %) no repite la alerta
+ 
+
+UPDATE 1
+psql:/tmp/db/tests/a6_pruebas_triggers.sql:99: NOTICE:  OK    06 pasa a 80 %: atiende la baja y crea una humedad_alta
+ 
+
+UPDATE 1
+psql:/tmp/db/tests/a6_pruebas_triggers.sql:105: NOTICE:  OK    07 vuelve a 50 % (óptima): no quedan alertas de humedad pendientes
+ 
+
+psql:/tmp/db/tests/a6_pruebas_triggers.sql:110: NOTICE:  OK    08 el mensaje de la alerta dice la planta y los valores
+ 
+
+UPDATE 1
+UPDATE 1
+psql:/tmp/db/tests/a6_pruebas_triggers.sql:117: NOTICE:  OK    09 una planta que ya no está activa no genera alertas
+ 
+
+UPDATE 1
+--- 3. Auditoría ---
+psql:/tmp/db/tests/a6_pruebas_triggers.sql:125: NOTICE:  OK    10 el INSERT de usuario quedó auditado
+ 
+
+psql:/tmp/db/tests/a6_pruebas_triggers.sql:130: NOTICE:  OK    11 la auditoría NUNCA guarda password_hash
+ 
+
+psql:/tmp/db/tests/a6_pruebas_triggers.sql:136: NOTICE:  OK    12 el UPDATE guarda el valor anterior y el nuevo
+ 
+
+psql:/tmp/db/tests/a6_pruebas_triggers.sql:142: NOTICE:  OK    13 registra al usuario de la app (SET app.usuario_id)
+ 
+
+psql:/tmp/db/tests/a6_pruebas_triggers.sql:148: NOTICE:  OK    14 las lecturas de humedad (solo humedad y fecha) NO se auditan
+ 
+
+psql:/tmp/db/tests/a6_pruebas_triggers.sql:153: NOTICE:  OK    15 los cambios reales de la planta sí se auditan (apodo y 2 de estatus)
+ 
+
+DELETE 1
+psql:/tmp/db/tests/a6_pruebas_triggers.sql:160: NOTICE:  OK    16 borrar la usuaria audita su DELETE y el de su planta (cascada)
+ 
+
+UPDATE 1
+psql:/tmp/db/tests/a6_pruebas_triggers.sql:166: NOTICE:  OK    17 los cambios al catálogo de especies se auditan
+ 
+
+ROLLBACK
+Pruebas de A6 terminadas: si todas dicen OK, A6 cumple.
