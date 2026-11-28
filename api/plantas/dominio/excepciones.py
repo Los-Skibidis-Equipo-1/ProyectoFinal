@@ -9,6 +9,7 @@ inesperados sigan su camino.
     │   ├── CampoVacio
     │   ├── TipoDeDatoInvalido
     │   ├── ValorFueraDeRango
+    │   │   └── LecturaFueraDeRango
     │   ├── OpcionNoPermitida
     │   ├── FormatoInvalido
     │   └── FechaInvalida
@@ -73,6 +74,15 @@ class TipoDeDatoInvalido(ErrorDeValidacion):
 
 class ValorFueraDeRango(ErrorDeValidacion):
     """El valor es del tipo correcto pero queda fuera de los límites."""
+
+
+class LecturaFueraDeRango(ValorFueraDeRango):
+    """Una medida de un sensor cae fuera de lo físicamente posible.
+
+    Hereda de ValorFueraDeRango, así que quien atrape esa excepción también
+    atrapa esta, pero se puede distinguir una lectura mala de un dato mal
+    capturado por una persona.
+    """
 
 
 class OpcionNoPermitida(ErrorDeValidacion):
