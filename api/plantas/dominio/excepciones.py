@@ -10,6 +10,7 @@ inesperados sigan su camino.
     │   ├── TipoDeDatoInvalido
     │   ├── ValorFueraDeRango
     │   ├── OpcionNoPermitida
+    │   ├── FormatoInvalido
     │   └── FechaInvalida
     ├── ErrorDeNegocio             dato válido que la regla no permite
     │   ├── PlantaNoEncontrada
@@ -76,6 +77,10 @@ class ValorFueraDeRango(ErrorDeValidacion):
 
 class OpcionNoPermitida(ErrorDeValidacion):
     """El valor no está entre las opciones válidas de un catálogo."""
+
+
+class FormatoInvalido(ErrorDeValidacion):
+    """El texto no tiene el formato esperado (correo, hash de contraseña)."""
 
 
 class FechaInvalida(ErrorDeValidacion):

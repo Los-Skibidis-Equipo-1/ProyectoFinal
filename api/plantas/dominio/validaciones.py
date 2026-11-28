@@ -7,14 +7,17 @@ reglas replican las del esquema (db/01_esquema.sql) y las de sp_registrar_riego
 """
 
 import math
+import re
 from collections.abc import Iterable
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from uuid import UUID
 
 from plantas.dominio.catalogos import (
     CANTIDAD_RIEGO_ML_MAX,
     CANTIDAD_RIEGO_ML_MIN,
+    ESTADO_ID_MAX,
+    ESTADO_ID_MIN,
     HUMEDAD_MAX,
     HUMEDAD_MIN,
     REGION_MAX,
@@ -28,6 +31,7 @@ from plantas.dominio.excepciones import (
     CampoVacio,
     ErrorDeValidacion,
     FechaInvalida,
+    FormatoInvalido,
     OpcionNoPermitida,
     TipoDeDatoInvalido,
     ValorFueraDeRango,
@@ -224,6 +228,118 @@ def validar_uuid(valor: object, campo: str) -> UUID:
         raise TipoDeDatoInvalido(
             f"{campo} no es un UUID válido", campo, valor
         ) from error
+
+
+def validar_booleano(valor: object, campo: str) -> bool:
+    """Solo acepta ``True`` o ``False``, no 0, 1 ni textos."""
+    if not isinstance(valor, bool):
+        raise TipoDeDatoInvalido(
+            f"{campo} debe ser verdadero o falso", campo, valor
+        )
+    return valor
+
+
+def validar_entero_positivo(valor: object, campo: str) -> int:
+    """Entero mayor que 0, como los identificadores numéricos."""
+    numero = convertir_a_numero(valor, campo)
+    if not numero.is_integer() or numero < 1:
+        raise ValorFueraDeRango(
+            f"{campo} debe ser un entero mayor que 0 (recibido: {numero})",
+            campo,
+            valor,
+        )
+    return int(numero)
+
+
+def validar_estado_id(valor: object) -> int:
+    """Estado de la República: 1 a 32 (ck_estado_id)."""
+    numero = validar_rango(valor, "estado", ESTADO_ID_MIN, ESTADO_ID_MAX)
+    if not numero.is_integer():
+        raise TipoDeDatoInvalido(
+            f"El estado debe ser un número entero (recibido: {numero})",
+            "estado",
+            valor,
+        )
+    return int(numero)
+
+
+def validar_texto_opcional(
+    valor: object, campo: str, largo_maximo: int
+) -> str | None:
+    """Texto opcional: ``None`` o un texto en blanco se guardan como None."""
+    if valor is None:
+        return None
+    if isinstance(valor, str) and not valor.strip():
+        return None
+    return validar_texto_no_vacio(valor, campo, largo_maximo)
+
+
+def validar_par_ordenado(
+    minimo: object,
+    maximo: object,
+    campo: str,
+    limite_inferior: float,
+    limite_superior: float,
+) -> tuple[float, float]:
+    """Rango [mínimo, máximo] dentro de los límites, con mínimo < máximo."""
+    bajo = validar_rango(
+        minimo, f"{campo} mínima", limite_inferior, limite_superior
+    )
+    alto = validar_rango(
+        maximo, f"{campo} máxima", limite_inferior, limite_superior
+    )
+    if bajo >= alto:
+        raise ValorFueraDeRango(
+            f"{campo}: el mínimo ({bajo}) debe ser menor que el máximo "
+            f"({alto})",
+            campo,
+            (minimo, maximo),
+        )
+    return bajo, alto
+
+
+CORREO_LARGO_MAXIMO = 254
+_PATRON_CORREO = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+PASSWORD_HASH_LARGO_MINIMO = 32
+
+
+def validar_correo(valor: object) -> str:
+    """Correo en minúsculas y sin espacios, con la forma de ck_usuario_correo.
+
+    No comprueba que el buzón exista, solo que tenga forma de correo.
+    """
+    texto = validar_texto_no_vacio(valor, "correo").lower()
+    if len(texto) > CORREO_LARGO_MAXIMO or not _PATRON_CORREO.match(texto):
+        raise FormatoInvalido("El correo no tiene un formato válido", "correo")
+    return texto
+
+
+def validar_password_hash(valor: object) -> str:
+    """Hash de contraseña ya calculado (scrypt); nunca la contraseña.
+
+    La excepción no guarda el valor para no filtrarlo a los registros.
+    """
+    if not isinstance(valor, str) or len(valor) < PASSWORD_HASH_LARGO_MINIMO:
+        raise FormatoInvalido(
+            f"El hash de la contraseña debe tener al menos "
+            f"{PASSWORD_HASH_LARGO_MINIMO} caracteres",
+            "password_hash",
+        )
+    return valor
+
+
+def validar_fecha_calendario_no_futura(
+    valor: object, campo: str, hoy: date | None = None
+) -> date:
+    """Fecha sin hora (por ejemplo, la de adquisición) que no sea futura."""
+    if not isinstance(valor, date) or isinstance(valor, datetime):
+        raise FechaInvalida(f"{campo} debe ser una fecha", campo, valor)
+    referencia = hoy if hoy is not None else datetime.now(UTC).date()
+    if valor > referencia:
+        raise FechaInvalida(
+            f"{campo} no puede estar en el futuro", campo, valor
+        )
+    return valor
 
 
 @dataclass
