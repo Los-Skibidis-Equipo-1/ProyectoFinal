@@ -8,7 +8,9 @@ Lleva estos datos (los dos primeros son los estándar de JWT):
 - ``iss``: quién lo emitió (``plantas-api``).
 - ``jti``: un identificador único del token.
 - ``reg`` y ``rol``: la región y el rol, para no consultar la base en cada
-  petición (el rol se vuelve a comprobar en operaciones delicadas, B11).
+  petición. El token dura 7 días, así que un cambio de rol no se nota hasta
+  que venza: en las operaciones de administración se vuelve a leer el rol de
+  la base (B11).
 
 Reglas que se siguen (RFC 8725, buenas prácticas de JWT):
 
@@ -49,7 +51,10 @@ from plantas.dominio.validaciones import (
 ALGORITMO = "HS256"
 EMISOR = "plantas-api"
 VARIABLE_DE_LA_LLAVE = "JWT_SECRET"
-DURACION_DEFECTO = timedelta(minutes=30)
+# Decisión de Andrea (2026-11-27): una semana. La app no maneja datos
+# críticos y así el usuario no tiene que iniciar sesión cada rato. Como no hay
+# revocación (B6 no la incluye), un token robado sirve hasta que venza.
+DURACION_DEFECTO = timedelta(days=7)
 
 CLAVE_LARGO_MINIMO = 32
 # El valor de ejemplo de .env.example empieza así y nunca debe usarse.

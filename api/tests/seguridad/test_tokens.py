@@ -143,6 +143,22 @@ def test_un_token_emitido_se_verifica_y_trae_los_datos_del_usuario():
     assert isinstance(datos.token_id, UUID)
 
 
+def test_por_defecto_el_token_dura_siete_dias():
+    assert DURACION_DEFECTO == timedelta(days=7)
+    datos = servicio().verificar(servicio().emitir(hacer_usuario()))
+    assert datos.expira - datos.emitido == timedelta(days=7)
+    assert servicio().duracion == timedelta(days=7)
+
+
+def test_un_token_de_hace_seis_dias_todavia_vale_y_uno_de_hace_ocho_no():
+    emisor = servicio()
+    seis = emisor.emitir(hacer_usuario(), ahora=ahora() - timedelta(days=6))
+    assert emisor.verificar(seis).usuario_id == USUARIO_ID
+    ocho = emisor.emitir(hacer_usuario(), ahora=ahora() - timedelta(days=8))
+    with pytest.raises(TokenExpirado):
+        emisor.verificar(ocho)
+
+
 def test_el_token_dura_lo_que_dice_el_servicio():
     datos = servicio().verificar(servicio().emitir(hacer_usuario()))
     assert datos.expira - datos.emitido == DURACION_DEFECTO
