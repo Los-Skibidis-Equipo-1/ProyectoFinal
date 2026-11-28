@@ -8,7 +8,7 @@
 # Lo más fácil es usar db/lab/iniciar_lab.ps1, que además instala todo.
 #
 # La contraseña de postgres sale de POSTGRES_PASSWORD en .env (no se sube a git).
-# wal_level=logical ya queda listo para la replicación lógica de A11.
+# wal_level=logical y los límites de procesos quedan listos para la replicación lógica de A11.
 # Responsable: Alexa Yalee Sánchez Tejeda · IA: generado y revisado (Claude)
 # =====================================================================
 
@@ -19,7 +19,10 @@ x-nodo: &nodo
   environment:
     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Falta POSTGRES_PASSWORD en .env}
     POSTGRES_DB: plantas
-  command: ["postgres", "-c", "wal_level=logical", "-c", "max_replication_slots=10", "-c", "max_wal_senders=10"]
+  # Replicación lógica (A11): con 3 suscripciones por nodo, el límite por
+  # omisión de 4 procesos de replicación se agota durante la copia inicial.
+  command: ["postgres", "-c", "wal_level=logical", "-c", "max_replication_slots=10", "-c", "max_wal_senders=10",
+            "-c", "max_logical_replication_workers=10", "-c", "max_worker_processes=16"]
   networks: [lab]
   healthcheck:
     test: ["CMD-SHELL", "pg_isready -U postgres -d plantas"]
