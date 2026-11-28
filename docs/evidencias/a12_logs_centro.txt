@@ -1,0 +1,115 @@
+﻿Logs de pg-centro durante el ensayo de A12
+2026-11-27 20:48:23.877 UTC [1] LOG:  received fast shutdown request
+
+PostgreSQL Database directory appears to contain a database; Skipping initialization
+
+2026-11-27 20:48:23.882 UTC [1] LOG:  aborting any active transactions
+2026-11-27 20:48:23.883 UTC [177] FATAL:  terminating logical replication worker due to administrator command
+2026-11-27 20:48:23.883 UTC [179] FATAL:  terminating logical replication worker due to administrator command
+2026-11-27 20:48:23.887 UTC [1] LOG:  background worker "logical replication launcher" (PID 31) exited with exit code 1
+2026-11-27 20:48:23.888 UTC [1] LOG:  background worker "logical replication worker" (PID 179) exited with exit code 1
+2026-11-27 20:48:23.926 UTC [174] FATAL:  terminating logical replication worker due to administrator command
+2026-11-27 20:48:23.927 UTC [1] LOG:  background worker "logical replication worker" (PID 177) exited with exit code 1
+2026-11-27 20:48:23.960 UTC [1] LOG:  background worker "logical replication worker" (PID 174) exited with exit code 1
+2026-11-27 20:48:23.961 UTC [26] LOG:  shutting down
+2026-11-27 20:48:23.979 UTC [26] LOG:  checkpoint starting: shutdown immediate
+2026-11-27 20:48:24.221 UTC [26] LOG:  checkpoint complete: wrote 421 buffers (2.6%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.026 s, sync=0.191 s, total=0.251 s; sync files=187, longest=0.008 s, average=0.002 s; distance=3118 kB, estimate=3118 kB; lsn=0/1F16630, redo lsn=0/1F16630
+2026-11-27 20:48:24.235 UTC [1] LOG:  database system is shut down
+2026-11-27 20:48:53.537 UTC [1] LOG:  starting PostgreSQL 16.15 (Debian 16.15-1.pgdg13+2) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+2026-11-27 20:48:53.537 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+2026-11-27 20:48:53.537 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+2026-11-27 20:48:53.549 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+2026-11-27 20:48:53.563 UTC [29] LOG:  database system was shut down at 2026-11-27 20:48:24 UTC
+2026-11-27 20:48:53.571 UTC [29] LOG:  recovered replication state of node 1 to 0/1F1DE08
+2026-11-27 20:48:53.571 UTC [29] LOG:  recovered replication state of node 2 to 0/0
+2026-11-27 20:48:53.571 UTC [29] LOG:  recovered replication state of node 5 to 0/1F202F8
+2026-11-27 20:48:53.586 UTC [1] LOG:  database system is ready to accept connections
+2026-11-27 20:48:53.603 UTC [33] LOG:  logical replication apply worker for subscription "sub_frag_r1" has started
+2026-11-27 20:48:53.608 UTC [34] LOG:  logical replication apply worker for subscription "sub_fijos_centro" has started
+2026-11-27 20:48:53.621 UTC [35] LOG:  logical replication apply worker for subscription "sub_glob_centro" has started
+2026-11-27 20:48:55.094 UTC [44] FATAL:  password authentication failed for user "root"
+2026-11-27 20:48:55.094 UTC [44] DETAIL:  Role "root" does not exist.
+	Connection matched file "/var/lib/postgresql/data/pg_hba.conf" line 128: "host all all all scram-sha-256"
+2026-11-27 20:48:56.308 UTC [54] LOG:  logical replication apply worker for subscription "sub_promovida_r2" has started
+2026-11-27 20:48:56.330 UTC [55] LOG:  logical replication table synchronization worker for subscription "sub_promovida_r2", table "planta_r2" has started
+2026-11-27 20:48:56.342 UTC [56] LOG:  logical replication table synchronization worker for subscription "sub_promovida_r2", table "usuario_r2" has started
+2026-11-27 20:48:56.478 UTC [55] LOG:  logical replication table synchronization worker for subscription "sub_promovida_r2", table "planta_r2" has finished
+2026-11-27 20:48:56.486 UTC [66] LOG:  logical replication table synchronization worker for subscription "sub_promovida_r2", table "sensor_r2" has started
+2026-11-27 20:48:56.494 UTC [56] LOG:  logical replication table synchronization worker for subscription "sub_promovida_r2", table "usuario_r2" has finished
+2026-11-27 20:48:56.504 UTC [67] LOG:  logical replication table synchronization worker for subscription "sub_promovida_r2", table "alerta_r2" has started
+2026-11-27 20:48:56.627 UTC [66] LOG:  logical replication table synchronization worker for subscription "sub_promovida_r2", table "sensor_r2" has finished
+2026-11-27 20:48:56.633 UTC [69] LOG:  logical replication table synchronization worker for subscription "sub_promovida_r2", table "cuidado_r2" has started
+2026-11-27 20:48:56.641 UTC [67] LOG:  logical replication table synchronization worker for subscription "sub_promovida_r2", table "alerta_r2" has finished
+2026-11-27 20:48:56.723 UTC [69] LOG:  logical replication table synchronization worker for subscription "sub_promovida_r2", table "cuidado_r2" has finished
+2026-11-27 20:48:58.399 UTC [86] ERROR:  new row violates row-level security policy for table "usuario"
+2026-11-27 20:48:58.399 UTC [86] STATEMENT:  INSERT INTO usuario (region_id, usuario_id, nombre, apellidos, correo, password_hash, estado_id) VALUES (2, 'a1200000-0000-0000-0000-0000000000fe', 'NoDebeEntrar', 'A12', '0000fe@ejemplo.com', repeat('x', 64), 22)
+2026-11-27 20:49:32.513 UTC [220] ERROR:  terminating logical replication worker due to timeout
+2026-11-27 20:49:32.514 UTC [223] ERROR:  terminating logical replication worker due to timeout
+2026-11-27 20:49:32.518 UTC [1] LOG:  background worker "logical replication worker" (PID 223) exited with exit code 1
+2026-11-27 20:49:32.519 UTC [1] LOG:  background worker "logical replication worker" (PID 220) exited with exit code 1
+2026-11-27 20:49:32.521 UTC [313] LOG:  logical replication apply worker for subscription "sub_frag_r1" has started
+2026-11-27 20:49:32.524 UTC [313] ERROR:  could not connect to the publisher: could not translate host name "pg-norte" to address: Temporary failure in name resolution
+2026-11-27 20:49:32.524 UTC [314] LOG:  logical replication apply worker for subscription "sub_fijos_centro" has started
+2026-11-27 20:49:32.525 UTC [314] ERROR:  could not connect to the publisher: could not translate host name "pg-norte" to address: Temporary failure in name resolution
+2026-11-27 20:49:32.528 UTC [1] LOG:  background worker "logical replication worker" (PID 313) exited with exit code 1
+2026-11-27 20:49:32.529 UTC [1] LOG:  background worker "logical replication worker" (PID 314) exited with exit code 1
+2026-11-27 20:49:32.718 UTC [224] ERROR:  terminating logical replication worker due to timeout
+2026-11-27 20:49:32.723 UTC [1] LOG:  background worker "logical replication worker" (PID 224) exited with exit code 1
+2026-11-27 20:49:32.724 UTC [315] LOG:  logical replication apply worker for subscription "sub_glob_centro" has started
+2026-11-27 20:49:32.727 UTC [315] ERROR:  could not connect to the publisher: could not translate host name "pg-norte" to address: Temporary failure in name resolution
+2026-11-27 20:49:32.730 UTC [1] LOG:  background worker "logical replication worker" (PID 315) exited with exit code 1
+2026-11-27 20:49:33.290 UTC [231] LOG:  terminating walsender process due to replication timeout
+2026-11-27 20:49:33.290 UTC [231] STATEMENT:  START_REPLICATION SLOT "sub_frag_r2" LOGICAL 0/0 (proto_version '4', origin 'any', publication_names '"pub_frag"')
+2026-11-27 20:49:37.527 UTC [324] LOG:  logical replication apply worker for subscription "sub_frag_r1" has started
+2026-11-27 20:49:37.529 UTC [324] ERROR:  could not connect to the publisher: could not translate host name "pg-norte" to address: Temporary failure in name resolution
+2026-11-27 20:49:37.533 UTC [1] LOG:  background worker "logical replication worker" (PID 324) exited with exit code 1
+2026-11-27 20:49:37.535 UTC [325] LOG:  logical replication apply worker for subscription "sub_fijos_centro" has started
+2026-11-27 20:49:37.536 UTC [325] ERROR:  could not connect to the publisher: could not translate host name "pg-norte" to address: Temporary failure in name resolution
+2026-11-27 20:49:37.539 UTC [1] LOG:  background worker "logical replication worker" (PID 325) exited with exit code 1
+2026-11-27 20:49:37.725 UTC [326] LOG:  logical replication apply worker for subscription "sub_glob_centro" has started
+2026-11-27 20:49:37.727 UTC [326] ERROR:  could not connect to the publisher: could not translate host name "pg-norte" to address: Temporary failure in name resolution
+2026-11-27 20:49:37.731 UTC [1] LOG:  background worker "logical replication worker" (PID 326) exited with exit code 1
+2026-11-27 20:49:42.532 UTC [343] LOG:  logical replication apply worker for subscription "sub_frag_r1" has started
+2026-11-27 20:49:42.534 UTC [343] ERROR:  could not connect to the publisher: could not translate host name "pg-norte" to address: Temporary failure in name resolution
+2026-11-27 20:49:42.540 UTC [1] LOG:  background worker "logical replication worker" (PID 343) exited with exit code 1
+2026-11-27 20:49:42.543 UTC [344] LOG:  logical replication apply worker for subscription "sub_fijos_centro" has started
+2026-11-27 20:49:42.545 UTC [344] ERROR:  could not connect to the publisher: could not translate host name "pg-norte" to address: Temporary failure in name resolution
+2026-11-27 20:49:42.549 UTC [1] LOG:  background worker "logical replication worker" (PID 344) exited with exit code 1
+2026-11-27 20:49:42.725 UTC [345] LOG:  logical replication apply worker for subscription "sub_glob_centro" has started
+2026-11-27 20:49:42.727 UTC [345] ERROR:  could not connect to the publisher: could not translate host name "pg-norte" to address: Temporary failure in name resolution
+2026-11-27 20:49:42.732 UTC [1] LOG:  background worker "logical replication worker" (PID 345) exited with exit code 1
+2026-11-27 20:49:47.534 UTC [362] LOG:  logical replication apply worker for subscription "sub_frag_r1" has started
+2026-11-27 20:49:47.536 UTC [362] ERROR:  could not connect to the publisher: could not translate host name "pg-norte" to address: Temporary failure in name resolution
+2026-11-27 20:49:47.539 UTC [1] LOG:  background worker "logical replication worker" (PID 362) exited with exit code 1
+2026-11-27 20:49:47.541 UTC [363] LOG:  logical replication apply worker for subscription "sub_fijos_centro" has started
+2026-11-27 20:49:47.543 UTC [363] ERROR:  could not connect to the publisher: could not translate host name "pg-norte" to address: Temporary failure in name resolution
+2026-11-27 20:49:47.547 UTC [1] LOG:  background worker "logical replication worker" (PID 363) exited with exit code 1
+2026-11-27 20:49:47.725 UTC [364] LOG:  logical replication apply worker for subscription "sub_glob_centro" has started
+2026-11-27 20:49:47.727 UTC [364] ERROR:  could not connect to the publisher: could not translate host name "pg-norte" to address: Temporary failure in name resolution
+2026-11-27 20:49:47.731 UTC [1] LOG:  background worker "logical replication worker" (PID 364) exited with exit code 1
+2026-11-27 20:49:52.540 UTC [374] LOG:  logical replication apply worker for subscription "sub_frag_r1" has started
+2026-11-27 20:49:52.543 UTC [374] ERROR:  could not connect to the publisher: could not translate host name "pg-norte" to address: Temporary failure in name resolution
+2026-11-27 20:49:52.546 UTC [1] LOG:  background worker "logical replication worker" (PID 374) exited with exit code 1
+2026-11-27 20:49:52.548 UTC [375] LOG:  logical replication apply worker for subscription "sub_fijos_centro" has started
+2026-11-27 20:49:52.549 UTC [375] ERROR:  could not connect to the publisher: could not translate host name "pg-norte" to address: Temporary failure in name resolution
+2026-11-27 20:49:52.553 UTC [1] LOG:  background worker "logical replication worker" (PID 375) exited with exit code 1
+2026-11-27 20:49:52.726 UTC [376] LOG:  logical replication apply worker for subscription "sub_glob_centro" has started
+2026-11-27 20:49:52.728 UTC [376] ERROR:  could not connect to the publisher: could not translate host name "pg-norte" to address: Temporary failure in name resolution
+2026-11-27 20:49:52.731 UTC [1] LOG:  background worker "logical replication worker" (PID 376) exited with exit code 1
+2026-11-27 20:49:57.544 UTC [393] LOG:  logical replication apply worker for subscription "sub_frag_r1" has started
+2026-11-27 20:49:57.556 UTC [394] LOG:  logical replication apply worker for subscription "sub_fijos_centro" has started
+2026-11-27 20:49:57.726 UTC [395] LOG:  logical replication apply worker for subscription "sub_glob_centro" has started
+2026-11-27 20:50:00.259 UTC [404] FATAL:  password authentication failed for user "root"
+2026-11-27 20:50:00.259 UTC [404] DETAIL:  Role "root" does not exist.
+	Connection matched file "/var/lib/postgresql/data/pg_hba.conf" line 128: "host all all all scram-sha-256"
+2026-11-27 20:50:01.515 UTC [414] LOG:  logical replication apply worker for subscription "sub_promovida_r2" has started
+2026-11-27 20:50:01.547 UTC [415] LOG:  logical replication table synchronization worker for subscription "sub_promovida_r2", table "planta_r2" has started
+2026-11-27 20:50:01.558 UTC [416] LOG:  logical replication table synchronization worker for subscription "sub_promovida_r2", table "usuario_r2" has started
+2026-11-27 20:50:01.719 UTC [415] LOG:  logical replication table synchronization worker for subscription "sub_promovida_r2", table "planta_r2" has finished
+2026-11-27 20:50:01.725 UTC [418] LOG:  logical replication table synchronization worker for subscription "sub_promovida_r2", table "sensor_r2" has started
+2026-11-27 20:50:01.734 UTC [416] LOG:  logical replication table synchronization worker for subscription "sub_promovida_r2", table "usuario_r2" has finished
+2026-11-27 20:50:01.744 UTC [419] LOG:  logical replication table synchronization worker for subscription "sub_promovida_r2", table "alerta_r2" has started
+2026-11-27 20:50:01.867 UTC [418] LOG:  logical replication table synchronization worker for subscription "sub_promovida_r2", table "sensor_r2" has finished
+2026-11-27 20:50:01.876 UTC [420] LOG:  logical replication table synchronization worker for subscription "sub_promovida_r2", table "cuidado_r2" has started
+2026-11-27 20:50:01.885 UTC [419] LOG:  logical replication table synchronization worker for subscription "sub_promovida_r2", table "alerta_r2" has finished
+2026-11-27 20:50:01.981 UTC [420] LOG:  logical replication table synchronization worker for subscription "sub_promovida_r2", table "cuidado_r2" has finished

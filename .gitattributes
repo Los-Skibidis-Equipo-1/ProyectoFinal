@@ -1,0 +1,5 @@
+# Los scripts de bash corren dentro de los contenedores Linux: deben tener
+# fin de línea LF aunque el repo se clone en Windows (si no, bash falla con $'\r').
+*.sh text eol=lf
+*.sql text eol=lf
+*.yml text eol=lf

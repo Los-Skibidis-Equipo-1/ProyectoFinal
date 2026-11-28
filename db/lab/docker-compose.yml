@@ -1,0 +1,57 @@
+# =====================================================================
+# Laboratorio local de 3 nodos (A9, y base para A11 y A12)
+# Simula en UNA computadora los 3 nodos de D-01: Norte, Centro y Sur.
+# Cuando la VPN (C9) esté lista, cada nodo corre en su propia computadora.
+#
+# Levantar:   docker compose -f db/lab/docker-compose.yml --env-file .env up -d
+# Apagar:     docker compose -f db/lab/docker-compose.yml --env-file .env down
+# Lo más fácil es usar db/lab/iniciar_lab.ps1, que además instala todo.
+#
+# La contraseña de postgres sale de POSTGRES_PASSWORD en .env (no se sube a git).
+# wal_level=logical y los límites de procesos quedan listos para la replicación lógica de A11.
+# Responsable: Alexa Yalee Sánchez Tejeda · IA: generado y revisado (Claude)
+# =====================================================================
+
+name: plantas-lab
+
+x-nodo: &nodo
+  image: postgres:16
+  environment:
+    POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Falta POSTGRES_PASSWORD en .env}
+    POSTGRES_DB: plantas
+  # Replicación lógica (A11): con 3 suscripciones por nodo, el límite por
+  # omisión de 4 procesos de replicación se agota durante la copia inicial.
+  # A12: los timeouts de 15 s (60 s por omisión) hacen que un nodo detecte
+  # más rápido que otro quedó aislado de la red.
+  command: ["postgres", "-c", "wal_level=logical", "-c", "max_replication_slots=10", "-c", "max_wal_senders=10",
+            "-c", "max_logical_replication_workers=10", "-c", "max_worker_processes=16",
+            "-c", "wal_sender_timeout=15s", "-c", "wal_receiver_timeout=15s"]
+  networks: [lab]
+  healthcheck:
+    test: ["CMD-SHELL", "pg_isready -U postgres -d plantas"]
+    interval: 3s
+    timeout: 3s
+    retries: 20
+
+services:
+  pg-norte:
+    <<: *nodo
+    container_name: pg-norte
+    hostname: pg-norte
+    ports: ["127.0.0.1:5441:5432"]
+
+  pg-centro:
+    <<: *nodo
+    container_name: pg-centro
+    hostname: pg-centro
+    ports: ["127.0.0.1:5442:5432"]
+
+  pg-sur:
+    <<: *nodo
+    container_name: pg-sur
+    hostname: pg-sur
+    ports: ["127.0.0.1:5443:5432"]
+
+networks:
+  lab:
+    name: plantas-lab

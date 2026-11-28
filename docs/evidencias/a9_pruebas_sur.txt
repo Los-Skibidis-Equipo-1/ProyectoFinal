@@ -1,0 +1,91 @@
+BEGIN
+SET
+Este nodo atiende la región: 3
+CREATE FUNCTION
+CREATE FUNCTION
+GRANT
+CREATE FUNCTION
+--- Configuración del nodo ---
+psql:/tmp/db/tests/a9_pruebas_fragmentacion.sql:66: NOTICE:  OK    01 este nodo tiene su región configurada (1, 2 o 3)
+ 
+
+psql:/tmp/db/tests/a9_pruebas_fragmentacion.sql:70: NOTICE:  OK    02 la región está guardada en la base (aplica a toda conexión nueva)
+ 
+
+SET
+psql:/tmp/db/tests/a9_pruebas_fragmentacion.sql:74: NOTICE:  OK    03 fn_region_local lee una lista (como después de una promoción)
+ 
+
+SET
+psql:/tmp/db/tests/a9_pruebas_fragmentacion.sql:77: NOTICE:  OK    04 sin configurar devuelve un arreglo vacío, no NULL
+ 
+
+--- Directorio de fragmentos (anillo Norte -> Centro -> Sur -> Norte) ---
+psql:/tmp/db/tests/a9_pruebas_fragmentacion.sql:81: NOTICE:  OK    05 hay un fragmento por región
+ 
+
+psql:/tmp/db/tests/a9_pruebas_fragmentacion.sql:84: NOTICE:  OK    06 la copia de cada región está en el nodo siguiente del anillo
+ 
+
+psql:/tmp/db/tests/a9_pruebas_fragmentacion.sql:86: NOTICE:  OK    07 cada nodo es primario de una región y copia de otra
+ 
+
+--- Cada fila cae en el fragmento de su región ---
+INSERT 0 1
+INSERT 0 3
+INSERT 0 3
+INSERT 0 3
+psql:/tmp/db/tests/a9_pruebas_fragmentacion.sql:110: NOTICE:  OK    08 cada usuario quedó en la partición de su región (usuario_r1/_r2/_r3)
+ 
+
+psql:/tmp/db/tests/a9_pruebas_fragmentacion.sql:113: NOTICE:  OK    09 cada planta quedó en la partición de su región
+ 
+
+psql:/tmp/db/tests/a9_pruebas_fragmentacion.sql:116: NOTICE:  OK    10 cada cuidado quedó en la partición de su región
+ 
+
+psql:/tmp/db/tests/a9_pruebas_fragmentacion.sql:120: NOTICE:  OK    11 una consulta con region_id = 3 solo entra a usuario_r3 (plan de ejecución)
+ 
+
+--- Directorio de correos ---
+INSERT 0 6
+psql:/tmp/db/tests/a9_pruebas_fragmentacion.sql:133: NOTICE:  OK    12 fecha_reserva se llena sola al reservar
+ 
+
+psql:/tmp/db/tests/a9_pruebas_fragmentacion.sql:136: NOTICE:  OK    13 fn_ubicar_usuario devuelve la región y el usuario del correo
+ 
+
+psql:/tmp/db/tests/a9_pruebas_fragmentacion.sql:138: NOTICE:  OK    14 un correo no registrado no devuelve nada
+ 
+
+SET
+psql:/tmp/db/tests/a9_pruebas_fragmentacion.sql:143: NOTICE:  OK    15 huérfanas: detecta la reserva vieja sin usuario de su región
+ 
+
+psql:/tmp/db/tests/a9_pruebas_fragmentacion.sql:145: NOTICE:  OK    16 huérfanas: NO marca la reserva reciente (puede estar en curso)
+ 
+
+psql:/tmp/db/tests/a9_pruebas_fragmentacion.sql:147: NOTICE:  OK    17 huérfanas: NO revisa reservas de otra región
+ 
+
+psql:/tmp/db/tests/a9_pruebas_fragmentacion.sql:149: NOTICE:  OK    18 huérfanas: un usuario con su reserva no aparece
+ 
+
+INSERT 0 1
+psql:/tmp/db/tests/a9_pruebas_fragmentacion.sql:155: NOTICE:  OK    19 detecta un usuario de su región sin fila en el directorio
+ 
+
+--- Permisos (modelo de A7) ---
+SET
+psql:/tmp/db/tests/a9_pruebas_fragmentacion.sql:161: NOTICE:  OK    20 la API puede ubicar usuarios y leer la topología
+ 
+
+psql:/tmp/db/tests/a9_pruebas_fragmentacion.sql:163: NOTICE:  OK    21 la API NO puede cambiar la topología del anillo (como plantas_api)
+ 
+
+psql:/tmp/db/tests/a9_pruebas_fragmentacion.sql:165: NOTICE:  OK    22 la API NO puede ver las vistas de huérfanas (como plantas_api)
+ 
+
+RESET
+ROLLBACK
+Pruebas de A9 terminadas: si todas dicen OK, A9 cumple en este nodo.

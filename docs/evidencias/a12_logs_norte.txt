@@ -1,0 +1,61 @@
+﻿Logs de pg-norte durante el ensayo de A12
+2026-11-27 20:48:25.090 UTC [236] FATAL:  password authentication failed for user "root"
+2026-11-27 20:48:25.090 UTC [236] DETAIL:  Role "root" does not exist.
+	Connection matched file "/var/lib/postgresql/data/pg_hba.conf" line 128: "host all all all scram-sha-256"
+2026-11-27 20:48:53.619 UTC [315] LOG:  0/1F1DE08 has been already streamed, forwarding to 0/1F20910
+2026-11-27 20:48:53.619 UTC [315] STATEMENT:  START_REPLICATION SLOT "sub_frag_r1" LOGICAL 0/1F1DE08 (proto_version '4', origin 'any', publication_names '"pub_frag"')
+2026-11-27 20:48:53.620 UTC [315] LOG:  starting logical decoding for slot "sub_frag_r1"
+2026-11-27 20:48:53.620 UTC [315] DETAIL:  Streaming transactions committing after 0/1F20910, reading WAL from 0/1F068F0.
+2026-11-27 20:48:53.620 UTC [315] STATEMENT:  START_REPLICATION SLOT "sub_frag_r1" LOGICAL 0/1F1DE08 (proto_version '4', origin 'any', publication_names '"pub_frag"')
+2026-11-27 20:48:53.620 UTC [315] LOG:  logical decoding found consistent point at 0/1F068F0
+2026-11-27 20:48:53.620 UTC [315] DETAIL:  There are no running transactions.
+2026-11-27 20:48:53.620 UTC [315] STATEMENT:  START_REPLICATION SLOT "sub_frag_r1" LOGICAL 0/1F1DE08 (proto_version '4', origin 'any', publication_names '"pub_frag"')
+2026-11-27 20:48:53.627 UTC [316] LOG:  starting logical decoding for slot "sub_fijos_centro"
+2026-11-27 20:48:53.627 UTC [316] DETAIL:  Streaming transactions committing after 0/1F20910, reading WAL from 0/1F068F0.
+2026-11-27 20:48:53.627 UTC [316] STATEMENT:  START_REPLICATION SLOT "sub_fijos_centro" LOGICAL 0/0 (proto_version '4', origin 'any', publication_names '"pub_fijos"')
+2026-11-27 20:48:53.628 UTC [316] LOG:  logical decoding found consistent point at 0/1F068F0
+2026-11-27 20:48:53.628 UTC [316] DETAIL:  There are no running transactions.
+2026-11-27 20:48:53.628 UTC [316] STATEMENT:  START_REPLICATION SLOT "sub_fijos_centro" LOGICAL 0/0 (proto_version '4', origin 'any', publication_names '"pub_fijos"')
+2026-11-27 20:48:53.639 UTC [317] LOG:  0/1F202F8 has been already streamed, forwarding to 0/1F20910
+2026-11-27 20:48:53.639 UTC [317] STATEMENT:  START_REPLICATION SLOT "sub_glob_centro" LOGICAL 0/1F202F8 (proto_version '4', origin 'any', publication_names '"pub_globales"')
+2026-11-27 20:48:53.640 UTC [317] LOG:  starting logical decoding for slot "sub_glob_centro"
+2026-11-27 20:48:53.640 UTC [317] DETAIL:  Streaming transactions committing after 0/1F20910, reading WAL from 0/1F068F0.
+2026-11-27 20:48:53.640 UTC [317] STATEMENT:  START_REPLICATION SLOT "sub_glob_centro" LOGICAL 0/1F202F8 (proto_version '4', origin 'any', publication_names '"pub_globales"')
+2026-11-27 20:48:53.640 UTC [317] LOG:  logical decoding found consistent point at 0/1F068F0
+2026-11-27 20:48:53.640 UTC [317] DETAIL:  There are no running transactions.
+2026-11-27 20:48:53.640 UTC [317] STATEMENT:  START_REPLICATION SLOT "sub_glob_centro" LOGICAL 0/1F202F8 (proto_version '4', origin 'any', publication_names '"pub_globales"')
+2026-11-27 20:48:53.654 UTC [317] LOG:  standby "sub_glob_centro" is now a candidate for quorum synchronous standby
+2026-11-27 20:48:53.654 UTC [317] STATEMENT:  START_REPLICATION SLOT "sub_glob_centro" LOGICAL 0/1F202F8 (proto_version '4', origin 'any', publication_names '"pub_globales"')
+2026-11-27 20:49:32.496 UTC [466] LOG:  terminating walsender process due to replication timeout
+2026-11-27 20:49:32.496 UTC [466] STATEMENT:  START_REPLICATION SLOT "sub_frag_r1" LOGICAL 0/0 (proto_version '4', origin 'any', publication_names '"pub_frag"')
+2026-11-27 20:49:32.496 UTC [470] LOG:  terminating walsender process due to replication timeout
+2026-11-27 20:49:32.496 UTC [470] STATEMENT:  START_REPLICATION SLOT "sub_fijos_centro" LOGICAL 0/0 (proto_version '4', origin 'any', publication_names '"pub_fijos"')
+2026-11-27 20:49:32.700 UTC [471] LOG:  terminating walsender process due to replication timeout
+2026-11-27 20:49:32.700 UTC [471] STATEMENT:  START_REPLICATION SLOT "sub_glob_centro" LOGICAL 0/0 (proto_version '4', origin 'any', publication_names '"pub_globales"')
+2026-11-27 20:49:33.146 UTC [683] FATAL:  password authentication failed for user "root"
+2026-11-27 20:49:33.146 UTC [683] DETAIL:  Role "root" does not exist.
+	Connection matched file "/var/lib/postgresql/data/pg_hba.conf" line 128: "host all all all scram-sha-256"
+2026-11-27 20:49:57.561 UTC [753] LOG:  0/2193978 has been already streamed, forwarding to 0/2196288
+2026-11-27 20:49:57.561 UTC [753] STATEMENT:  START_REPLICATION SLOT "sub_frag_r1" LOGICAL 0/2193978 (proto_version '4', origin 'any', publication_names '"pub_frag"')
+2026-11-27 20:49:57.561 UTC [753] LOG:  starting logical decoding for slot "sub_frag_r1"
+2026-11-27 20:49:57.561 UTC [753] DETAIL:  Streaming transactions committing after 0/2196288, reading WAL from 0/218AAE0.
+2026-11-27 20:49:57.561 UTC [753] STATEMENT:  START_REPLICATION SLOT "sub_frag_r1" LOGICAL 0/2193978 (proto_version '4', origin 'any', publication_names '"pub_frag"')
+2026-11-27 20:49:57.562 UTC [753] LOG:  logical decoding found consistent point at 0/218AAE0
+2026-11-27 20:49:57.562 UTC [753] DETAIL:  There are no running transactions.
+2026-11-27 20:49:57.562 UTC [753] STATEMENT:  START_REPLICATION SLOT "sub_frag_r1" LOGICAL 0/2193978 (proto_version '4', origin 'any', publication_names '"pub_frag"')
+2026-11-27 20:49:57.574 UTC [754] LOG:  starting logical decoding for slot "sub_fijos_centro"
+2026-11-27 20:49:57.574 UTC [754] DETAIL:  Streaming transactions committing after 0/2196288, reading WAL from 0/218AAE0.
+2026-11-27 20:49:57.574 UTC [754] STATEMENT:  START_REPLICATION SLOT "sub_fijos_centro" LOGICAL 0/0 (proto_version '4', origin 'any', publication_names '"pub_fijos"')
+2026-11-27 20:49:57.574 UTC [754] LOG:  logical decoding found consistent point at 0/218AAE0
+2026-11-27 20:49:57.574 UTC [754] DETAIL:  There are no running transactions.
+2026-11-27 20:49:57.574 UTC [754] STATEMENT:  START_REPLICATION SLOT "sub_fijos_centro" LOGICAL 0/0 (proto_version '4', origin 'any', publication_names '"pub_fijos"')
+2026-11-27 20:49:57.740 UTC [755] LOG:  0/2195C58 has been already streamed, forwarding to 0/2196288
+2026-11-27 20:49:57.740 UTC [755] STATEMENT:  START_REPLICATION SLOT "sub_glob_centro" LOGICAL 0/2195C58 (proto_version '4', origin 'any', publication_names '"pub_globales"')
+2026-11-27 20:49:57.741 UTC [755] LOG:  starting logical decoding for slot "sub_glob_centro"
+2026-11-27 20:49:57.741 UTC [755] DETAIL:  Streaming transactions committing after 0/2196288, reading WAL from 0/218AAE0.
+2026-11-27 20:49:57.741 UTC [755] STATEMENT:  START_REPLICATION SLOT "sub_glob_centro" LOGICAL 0/2195C58 (proto_version '4', origin 'any', publication_names '"pub_globales"')
+2026-11-27 20:49:57.741 UTC [755] LOG:  logical decoding found consistent point at 0/218AAE0
+2026-11-27 20:49:57.741 UTC [755] DETAIL:  There are no running transactions.
+2026-11-27 20:49:57.741 UTC [755] STATEMENT:  START_REPLICATION SLOT "sub_glob_centro" LOGICAL 0/2195C58 (proto_version '4', origin 'any', publication_names '"pub_globales"')
+2026-11-27 20:49:57.754 UTC [755] LOG:  standby "sub_glob_centro" is now a candidate for quorum synchronous standby
+2026-11-27 20:49:57.754 UTC [755] STATEMENT:  START_REPLICATION SLOT "sub_glob_centro" LOGICAL 0/2195C58 (proto_version '4', origin 'any', publication_names '"pub_globales"')
