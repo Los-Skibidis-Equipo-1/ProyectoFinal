@@ -1,0 +1,375 @@
+"""Validaciones de datos del dominio.
+
+Cada función devuelve el dato ya limpio y convertido, o lanza una subclase de
+ErrorDeValidacion con un mensaje que dice qué campo falló y por qué. Las
+reglas replican las del esquema (db/01_esquema.sql) y las de sp_registrar_riego
+(A5), para que un dato inválido se rechace en la API antes de llegar a la base.
+"""
+
+import math
+import re
+from collections.abc import Iterable
+from dataclasses import dataclass, field
+from datetime import UTC, date, datetime
+from uuid import UUID
+
+from plantas.dominio.catalogos import (
+    CANTIDAD_RIEGO_ML_MAX,
+    CANTIDAD_RIEGO_ML_MIN,
+    ESTADO_ID_MAX,
+    ESTADO_ID_MIN,
+    HUMEDAD_MAX,
+    HUMEDAD_MIN,
+    REGION_MAX,
+    REGION_MIN,
+    RIEGO_DIAS_MAX,
+    RIEGO_DIAS_MIN,
+    TEMPERATURA_MAX,
+    TEMPERATURA_MIN,
+)
+from plantas.dominio.excepciones import (
+    CampoVacio,
+    ErrorDeValidacion,
+    FechaInvalida,
+    FormatoInvalido,
+    OpcionNoPermitida,
+    TipoDeDatoInvalido,
+    ValorFueraDeRango,
+)
+
+
+def convertir_a_numero(valor: object, campo: str) -> float:
+    """Convierte un número o un texto como ``"45,5"`` a ``float``.
+
+    Acepta coma o punto decimal, porque los sensores y los archivos CSV
+    pueden usar cualquiera. Rechaza los booleanos, que en Python son enteros
+    (``True == 1``), y los valores no finitos (``nan`` e ``inf``).
+    """
+    if isinstance(valor, bool):
+        raise TipoDeDatoInvalido(
+            f"{campo} debe ser un número, no un booleano", campo, valor
+        )
+    if isinstance(valor, int | float):
+        numero = float(valor)
+    elif isinstance(valor, str):
+        try:
+            numero = float(valor.strip().replace(",", "."))
+        except ValueError as error:
+            raise TipoDeDatoInvalido(
+                f"{campo} debe ser un número (recibido: {valor!r})",
+                campo,
+                valor,
+            ) from error
+    else:
+        raise TipoDeDatoInvalido(
+            f"{campo} debe ser un número (tipo recibido: "
+            f"{type(valor).__name__})",
+            campo,
+            valor,
+        )
+    if not math.isfinite(numero):
+        raise TipoDeDatoInvalido(
+            f"{campo} debe ser un número finito", campo, valor
+        )
+    return numero
+
+
+def validar_texto_no_vacio(
+    valor: object, campo: str, largo_maximo: int | None = None
+) -> str:
+    """Devuelve el texto sin espacios en los extremos; no puede estar vacío."""
+    if not isinstance(valor, str):
+        raise TipoDeDatoInvalido(
+            f"{campo} debe ser texto (tipo recibido: {type(valor).__name__})",
+            campo,
+            valor,
+        )
+    texto = valor.strip()
+    if not texto:
+        raise CampoVacio(f"{campo} no puede estar vacío", campo, valor)
+    if largo_maximo is not None and len(texto) > largo_maximo:
+        raise ValorFueraDeRango(
+            f"{campo} no puede tener más de {largo_maximo} caracteres",
+            campo,
+            valor,
+        )
+    return texto
+
+
+def validar_rango(
+    valor: object, campo: str, minimo: float, maximo: float
+) -> float:
+    """Convierte a número y comprueba que esté entre mínimo y máximo."""
+    numero = convertir_a_numero(valor, campo)
+    if not minimo <= numero <= maximo:
+        raise ValorFueraDeRango(
+            f"{campo} debe estar entre {minimo} y {maximo} "
+            f"(recibido: {numero})",
+            campo,
+            valor,
+        )
+    return numero
+
+
+def validar_humedad(valor: object) -> float:
+    """Humedad en porcentaje, de 0 a 100 (ck_planta_humedad)."""
+    return validar_rango(valor, "humedad", HUMEDAD_MIN, HUMEDAD_MAX)
+
+
+def validar_temperatura(valor: object) -> float:
+    """Temperatura en grados Celsius, de -20 a 60 (ck_especie_temp_rango)."""
+    return validar_rango(
+        valor, "temperatura", TEMPERATURA_MIN, TEMPERATURA_MAX
+    )
+
+
+def validar_cantidad_agua_ml(valor: object) -> int:
+    """Cantidad de agua de un riego: entero de 1 a 20 000 ml (ck_cuidado).
+
+    La base también exige que sea mayor que 0 en sp_registrar_riego (A5).
+    """
+    numero = validar_rango(
+        valor,
+        "cantidad de agua",
+        CANTIDAD_RIEGO_ML_MIN,
+        CANTIDAD_RIEGO_ML_MAX,
+    )
+    if not numero.is_integer():
+        raise TipoDeDatoInvalido(
+            f"La cantidad de agua debe ser un número entero de mililitros "
+            f"(recibido: {numero})",
+            "cantidad de agua",
+            valor,
+        )
+    return int(numero)
+
+
+def validar_frecuencia_riego_dias(valor: object) -> int:
+    """Días entre riegos: un entero de 1 a 365 (ck_especie_riego)."""
+    numero = validar_rango(
+        valor, "frecuencia de riego", RIEGO_DIAS_MIN, RIEGO_DIAS_MAX
+    )
+    if not numero.is_integer():
+        raise TipoDeDatoInvalido(
+            f"La frecuencia de riego debe ser un número entero de días "
+            f"(recibido: {numero})",
+            "frecuencia de riego",
+            valor,
+        )
+    return int(numero)
+
+
+def validar_opcion(valor: object, campo: str, opciones: Iterable[str]) -> str:
+    """Comprueba que el texto sea una de las opciones permitidas.
+
+    Quita espacios y pasa a minúsculas, como están guardadas en la base.
+    """
+    opciones = tuple(opciones)
+    texto = validar_texto_no_vacio(valor, campo).lower()
+    if texto not in opciones:
+        raise OpcionNoPermitida(
+            f"{campo} debe ser una de {', '.join(opciones)} "
+            f"(recibido: {texto!r})",
+            campo,
+            valor,
+        )
+    return texto
+
+
+def validar_fecha_no_futura(
+    valor: object, campo: str, ahora: datetime | None = None
+) -> datetime:
+    """La fecha debe traer zona horaria y no estar en el futuro (A5).
+
+    ``ahora`` se puede pasar para probar sin depender del reloj.
+    """
+    if not isinstance(valor, datetime):
+        raise FechaInvalida(f"{campo} no puede estar vacía", campo, valor)
+    if valor.tzinfo is None:
+        raise FechaInvalida(f"{campo} debe incluir zona horaria", campo, valor)
+    referencia = ahora if ahora is not None else datetime.now(UTC)
+    if valor > referencia:
+        raise FechaInvalida(
+            f"{campo} no puede estar en el futuro", campo, valor
+        )
+    return valor
+
+
+def validar_region(valor: object) -> int:
+    """Región del usuario: 1 Norte, 2 Centro o 3 Sur (ck_region_id)."""
+    numero = validar_rango(valor, "región", REGION_MIN, REGION_MAX)
+    if not numero.is_integer():
+        raise TipoDeDatoInvalido(
+            f"La región debe ser un número entero (recibido: {numero})",
+            "región",
+            valor,
+        )
+    return int(numero)
+
+
+def validar_uuid(valor: object, campo: str) -> UUID:
+    """Identificador UUID, como los de usuario, planta y sensor.
+
+    La API genera el ``usuario_id`` (D-01, sección 6); los demás los genera
+    la base. Acepta un UUID o su texto.
+    """
+    if isinstance(valor, UUID):
+        return valor
+    if not isinstance(valor, str):
+        raise TipoDeDatoInvalido(
+            f"{campo} debe ser un UUID (tipo recibido: "
+            f"{type(valor).__name__})",
+            campo,
+            valor,
+        )
+    try:
+        return UUID(valor.strip())
+    except ValueError as error:
+        raise TipoDeDatoInvalido(
+            f"{campo} no es un UUID válido", campo, valor
+        ) from error
+
+
+def validar_booleano(valor: object, campo: str) -> bool:
+    """Solo acepta ``True`` o ``False``, no 0, 1 ni textos."""
+    if not isinstance(valor, bool):
+        raise TipoDeDatoInvalido(
+            f"{campo} debe ser verdadero o falso", campo, valor
+        )
+    return valor
+
+
+def validar_entero_positivo(valor: object, campo: str) -> int:
+    """Entero mayor que 0, como los identificadores numéricos."""
+    numero = convertir_a_numero(valor, campo)
+    if not numero.is_integer() or numero < 1:
+        raise ValorFueraDeRango(
+            f"{campo} debe ser un entero mayor que 0 (recibido: {numero})",
+            campo,
+            valor,
+        )
+    return int(numero)
+
+
+def validar_estado_id(valor: object) -> int:
+    """Estado de la República: 1 a 32 (ck_estado_id)."""
+    numero = validar_rango(valor, "estado", ESTADO_ID_MIN, ESTADO_ID_MAX)
+    if not numero.is_integer():
+        raise TipoDeDatoInvalido(
+            f"El estado debe ser un número entero (recibido: {numero})",
+            "estado",
+            valor,
+        )
+    return int(numero)
+
+
+def validar_texto_opcional(
+    valor: object, campo: str, largo_maximo: int
+) -> str | None:
+    """Texto opcional: ``None`` o un texto en blanco se guardan como None."""
+    if valor is None:
+        return None
+    if isinstance(valor, str) and not valor.strip():
+        return None
+    return validar_texto_no_vacio(valor, campo, largo_maximo)
+
+
+def validar_par_ordenado(
+    minimo: object,
+    maximo: object,
+    campo: str,
+    limite_inferior: float,
+    limite_superior: float,
+) -> tuple[float, float]:
+    """Rango [mínimo, máximo] dentro de los límites, con mínimo < máximo."""
+    bajo = validar_rango(
+        minimo, f"{campo} mínima", limite_inferior, limite_superior
+    )
+    alto = validar_rango(
+        maximo, f"{campo} máxima", limite_inferior, limite_superior
+    )
+    if bajo >= alto:
+        raise ValorFueraDeRango(
+            f"{campo}: el mínimo ({bajo}) debe ser menor que el máximo "
+            f"({alto})",
+            campo,
+            (minimo, maximo),
+        )
+    return bajo, alto
+
+
+CORREO_LARGO_MAXIMO = 254
+_PATRON_CORREO = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+PASSWORD_HASH_LARGO_MINIMO = 32
+
+
+def validar_correo(valor: object) -> str:
+    """Correo en minúsculas y sin espacios, con la forma de ck_usuario_correo.
+
+    No comprueba que el buzón exista, solo que tenga forma de correo.
+    """
+    texto = validar_texto_no_vacio(valor, "correo").lower()
+    if len(texto) > CORREO_LARGO_MAXIMO or not _PATRON_CORREO.match(texto):
+        raise FormatoInvalido("El correo no tiene un formato válido", "correo")
+    return texto
+
+
+def validar_password_hash(valor: object) -> str:
+    """Hash de contraseña ya calculado (scrypt); nunca la contraseña.
+
+    La excepción no guarda el valor para no filtrarlo a los registros.
+    """
+    if not isinstance(valor, str) or len(valor) < PASSWORD_HASH_LARGO_MINIMO:
+        raise FormatoInvalido(
+            f"El hash de la contraseña debe tener al menos "
+            f"{PASSWORD_HASH_LARGO_MINIMO} caracteres",
+            "password_hash",
+        )
+    return valor
+
+
+def validar_fecha_calendario_no_futura(
+    valor: object, campo: str, hoy: date | None = None
+) -> date:
+    """Fecha sin hora (por ejemplo, la de adquisición) que no sea futura."""
+    if not isinstance(valor, date) or isinstance(valor, datetime):
+        raise FechaInvalida(f"{campo} debe ser una fecha", campo, valor)
+    referencia = hoy if hoy is not None else datetime.now(UTC).date()
+    if valor > referencia:
+        raise FechaInvalida(
+            f"{campo} no puede estar en el futuro", campo, valor
+        )
+    return valor
+
+
+@dataclass
+class ResultadoLecturas:
+    """Resumen de un lote de lecturas: las buenas y las que se rechazaron."""
+
+    validas: list[float] = field(default_factory=list)
+    errores: list[tuple[int, str]] = field(default_factory=list)
+    procesadas: int = 0
+
+
+def procesar_lecturas_humedad(lecturas: Iterable[object]) -> ResultadoLecturas:
+    """Valida un lote de lecturas de humedad sin detenerse en la primera falla.
+
+    Es el patrón que se usará al leer archivos CSV y JSON (B7) y en el
+    simulador de sensores (B15): una lectura mala no tira el lote completo.
+
+    - ``try``: intenta convertir y validar la lectura.
+    - ``except``: si falla, guarda la posición y el motivo.
+    - ``else``: solo si no hubo error, guarda la lectura como válida.
+    - ``finally``: siempre cuenta la lectura como procesada.
+    """
+    resultado = ResultadoLecturas()
+    for posicion, lectura in enumerate(lecturas, start=1):
+        try:
+            humedad = validar_humedad(lectura)
+        except ErrorDeValidacion as error:
+            resultado.errores.append((posicion, error.mensaje))
+        else:
+            resultado.validas.append(humedad)
+        finally:
+            resultado.procesadas += 1
+    return resultado
