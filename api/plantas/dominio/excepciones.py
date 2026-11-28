@@ -16,11 +16,16 @@ inesperados sigan su camino.
     ├── ErrorDeNegocio             dato válido que la regla no permite
     │   ├── PlantaNoEncontrada
     │   ├── PlantaInactiva
-    │   └── CorreoYaRegistrado
+    │   ├── CorreoYaRegistrado
+    │   └── ErrorDeAutenticacion   quién llama no pudo comprobar su identidad
+    │       ├── CredencialesInvalidas
+    │       └── TokenInvalido
+    │           └── TokenExpirado
     └── ErrorDeInfraestructura     el dato está bien, pero un servicio falló
         ├── NodoNoDisponible
         ├── DirectorioNoDisponible
-        └── LecturaNoGuardada
+        ├── LecturaNoGuardada
+        └── ConfiguracionInvalida
 
 El atributo ``sqlstate`` relaciona cada excepción con el error que devuelve
 PostgreSQL en el procedimiento sp_registrar_riego (A5), para que la capa de
@@ -139,6 +144,36 @@ class CorreoYaRegistrado(ErrorDeNegocio):
         super().__init__("Ese correo ya está registrado")
 
 
+class ErrorDeAutenticacion(ErrorDeNegocio):
+    """No se pudo comprobar la identidad de quien llama (la API responde 401).
+
+    Los mensajes son genéricos a propósito: no dicen si falló el correo o la
+    contraseña, ni qué parte del token estaba mal, para no ayudar a un
+    atacante. Nunca llevan la contraseña ni el token.
+    """
+
+
+class CredencialesInvalidas(ErrorDeAutenticacion):
+    """Correo o contraseña incorrectos, o la cuenta está desactivada."""
+
+    def __init__(self) -> None:
+        super().__init__("Correo o contraseña incorrectos")
+
+
+class TokenInvalido(ErrorDeAutenticacion):
+    """El token no se puede aceptar: firma, formato o datos incorrectos."""
+
+    def __init__(self) -> None:
+        super().__init__("El token no es válido")
+
+
+class TokenExpirado(TokenInvalido):
+    """El token era válido, pero ya venció; hay que iniciar sesión de nuevo."""
+
+    def __init__(self) -> None:
+        ErrorDeAutenticacion.__init__(self, "El token ya venció")
+
+
 class ErrorDeInfraestructura(ErrorPlantas):
     """La petición es correcta, pero un nodo o servicio no pudo atenderla.
 
@@ -183,3 +218,15 @@ class LecturaNoGuardada(ErrorDeInfraestructura):
         )
         self.sensor_id = sensor_id
         self.intentos = intentos
+
+
+class ConfiguracionInvalida(ErrorDeInfraestructura):
+    """Falta una variable de entorno o su valor no es seguro.
+
+    La API no debe arrancar así: es mejor fallar al inicio que firmar tokens
+    con una llave débil. El mensaje dice qué variable, nunca su valor.
+    """
+
+    def __init__(self, variable: str, motivo: str) -> None:
+        super().__init__(f"Configuración inválida en {variable}: {motivo}")
+        self.variable = variable

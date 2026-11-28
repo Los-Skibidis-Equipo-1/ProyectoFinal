@@ -6,8 +6,11 @@ import pytest
 
 from plantas.dominio.excepciones import (
     CampoVacio,
+    ConfiguracionInvalida,
     CorreoYaRegistrado,
+    CredencialesInvalidas,
     DirectorioNoDisponible,
+    ErrorDeAutenticacion,
     ErrorDeInfraestructura,
     ErrorDeNegocio,
     ErrorDeValidacion,
@@ -20,6 +23,8 @@ from plantas.dominio.excepciones import (
     PlantaInactiva,
     PlantaNoEncontrada,
     TipoDeDatoInvalido,
+    TokenExpirado,
+    TokenInvalido,
     ValorFueraDeRango,
 )
 
@@ -52,7 +57,13 @@ def test_los_errores_de_negocio_heredan_de_la_base(clase):
 
 
 @pytest.mark.parametrize(
-    "clase", [NodoNoDisponible, DirectorioNoDisponible, LecturaNoGuardada]
+    "clase",
+    [
+        NodoNoDisponible,
+        DirectorioNoDisponible,
+        LecturaNoGuardada,
+        ConfiguracionInvalida,
+    ],
 )
 def test_los_errores_de_infraestructura_heredan_de_la_base(clase):
     assert issubclass(clase, ErrorDeInfraestructura)
@@ -161,3 +172,32 @@ def test_una_lectura_fuera_de_rango_tambien_es_un_valor_fuera_de_rango():
     assert issubclass(LecturaFueraDeRango, ValorFueraDeRango)
     with pytest.raises(ValorFueraDeRango):
         raise LecturaFueraDeRango("lectura mala", "humedad", 180)
+
+
+AUTENTICACION = [CredencialesInvalidas, TokenInvalido, TokenExpirado]
+
+
+@pytest.mark.parametrize("clase", AUTENTICACION)
+def test_los_errores_de_autenticacion_son_de_negocio(clase):
+    assert issubclass(clase, ErrorDeAutenticacion)
+    assert issubclass(clase, ErrorDeNegocio)
+    assert issubclass(clase, ErrorPlantas)
+    assert not issubclass(clase, ErrorDeValidacion)
+    assert not issubclass(clase, ErrorDeInfraestructura)
+
+
+def test_un_token_expirado_tambien_es_un_token_invalido():
+    assert issubclass(TokenExpirado, TokenInvalido)
+    assert not issubclass(TokenInvalido, TokenExpirado)
+
+
+def test_los_mensajes_de_autenticacion_son_genericos():
+    assert str(CredencialesInvalidas()) == "Correo o contraseña incorrectos"
+    assert str(TokenInvalido()) == "El token no es válido"
+    assert str(TokenExpirado()) == "El token ya venció"
+
+
+def test_la_configuracion_invalida_dice_la_variable():
+    error = ConfiguracionInvalida("JWT_SECRET", "falta la llave")
+    assert error.variable == "JWT_SECRET"
+    assert "JWT_SECRET" in str(error)
