@@ -13,6 +13,7 @@ from plantas.dominio.excepciones import (
     ErrorDeValidacion,
     ErrorPlantas,
     FechaInvalida,
+    LecturaFueraDeRango,
     LecturaNoGuardada,
     NodoNoDisponible,
     OpcionNoPermitida,
@@ -31,6 +32,7 @@ VALIDACION = [
     ValorFueraDeRango,
     OpcionNoPermitida,
     FechaInvalida,
+    LecturaFueraDeRango,
 ]
 
 
@@ -153,3 +155,9 @@ def test_lectura_no_guardada_dice_sensor_e_intentos():
 def test_los_errores_de_infraestructura_no_tienen_sqlstate():
     assert ErrorDeInfraestructura.sqlstate is None
     assert NodoNoDisponible.sqlstate is None
+
+
+def test_una_lectura_fuera_de_rango_tambien_es_un_valor_fuera_de_rango():
+    assert issubclass(LecturaFueraDeRango, ValorFueraDeRango)
+    with pytest.raises(ValorFueraDeRango):
+        raise LecturaFueraDeRango("lectura mala", "humedad", 180)
