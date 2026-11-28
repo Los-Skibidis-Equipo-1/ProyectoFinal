@@ -25,7 +25,7 @@ CATALOGOS = [
 def opciones_del_esquema(nombre_check: str) -> tuple[str, ...]:
     sql = ESQUEMA.read_text(encoding="utf-8")
     patron = rf"{nombre_check}\s+CHECK\s*\(\s*\w+\s+IN\s*\(([^)]*)\)"
-    encontrado = re.search(patron, sql)
+    encontrado = re.search(patron, sql, re.DOTALL)
     assert encontrado, f"No se encontró {nombre_check} en db/01_esquema.sql"
     return tuple(re.findall(r"'([^']+)'", encontrado.group(1)))
 
@@ -41,7 +41,7 @@ def test_el_catalogo_coincide_con_el_esquema(nombre_check, catalogo):
 
 def limites_del_esquema(patron: str) -> tuple[int, int]:
     sql = ESQUEMA.read_text(encoding="utf-8")
-    encontrado = re.search(patron, sql)
+    encontrado = re.search(patron, sql, re.DOTALL)
     assert encontrado, f"No se encontró {patron!r} en db/01_esquema.sql"
     return int(encontrado.group(1)), int(encontrado.group(2))
 
@@ -61,3 +61,12 @@ def test_los_limites_numericos_coinciden_con_el_esquema():
         r"ck_especie_temp_rango\s+CHECK\s*\(temp_min >= (-?\d+) "
         r"AND temp_max <= (-?\d+)"
     ) == (catalogos.TEMPERATURA_MIN, catalogos.TEMPERATURA_MAX)
+
+
+def test_los_limites_de_cuidado_y_estado_coinciden_con_el_esquema():
+    assert limites_del_esquema(
+        r"ck_cuidado_cantidad.*?cantidad_ml BETWEEN (-?\d+) AND (-?\d+)"
+    ) == (catalogos.CANTIDAD_RIEGO_ML_MIN, catalogos.CANTIDAD_RIEGO_ML_MAX)
+    assert limites_del_esquema(
+        r"ck_estado_id\s+CHECK\s*\(estado_id BETWEEN (-?\d+) AND (-?\d+)"
+    ) == (catalogos.ESTADO_ID_MIN, catalogos.ESTADO_ID_MAX)

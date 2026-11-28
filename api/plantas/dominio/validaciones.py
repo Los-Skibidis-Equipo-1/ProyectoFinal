@@ -13,6 +13,8 @@ from datetime import UTC, datetime
 from uuid import UUID
 
 from plantas.dominio.catalogos import (
+    CANTIDAD_RIEGO_ML_MAX,
+    CANTIDAD_RIEGO_ML_MIN,
     HUMEDAD_MAX,
     HUMEDAD_MIN,
     REGION_MAX,
@@ -117,16 +119,25 @@ def validar_temperatura(valor: object) -> float:
     )
 
 
-def validar_cantidad_agua_ml(valor: object) -> float:
-    """Cantidad de agua en mililitros; debe ser mayor que 0 (A5)."""
-    numero = convertir_a_numero(valor, "cantidad de agua")
-    if numero <= 0:
-        raise ValorFueraDeRango(
-            f"La cantidad de agua debe ser mayor que 0 (recibido: {numero})",
+def validar_cantidad_agua_ml(valor: object) -> int:
+    """Cantidad de agua de un riego: entero de 1 a 20 000 ml (ck_cuidado).
+
+    La base también exige que sea mayor que 0 en sp_registrar_riego (A5).
+    """
+    numero = validar_rango(
+        valor,
+        "cantidad de agua",
+        CANTIDAD_RIEGO_ML_MIN,
+        CANTIDAD_RIEGO_ML_MAX,
+    )
+    if not numero.is_integer():
+        raise TipoDeDatoInvalido(
+            f"La cantidad de agua debe ser un número entero de mililitros "
+            f"(recibido: {numero})",
             "cantidad de agua",
             valor,
         )
-    return numero
+    return int(numero)
 
 
 def validar_frecuencia_riego_dias(valor: object) -> int:

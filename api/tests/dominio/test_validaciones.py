@@ -100,15 +100,24 @@ def test_validar_rango_con_limites_propios():
         validar_rango(11, "edad", 1, 10)
 
 
-@pytest.mark.parametrize("valor", [0.1, 1, 250, "300,5"])
-def test_cantidad_de_agua_valida(valor):
-    assert validar_cantidad_agua_ml(valor) > 0
+@pytest.mark.parametrize(
+    ("valor", "esperado"), [(1, 1), (250, 250), ("300", 300), (20000, 20000)]
+)
+def test_cantidad_de_agua_valida(valor, esperado):
+    resultado = validar_cantidad_agua_ml(valor)
+    assert resultado == esperado
+    assert isinstance(resultado, int)
 
 
-@pytest.mark.parametrize("valor", [0, -1, -0.5, "0"])
-def test_cantidad_de_agua_debe_ser_mayor_que_cero(valor):
-    with pytest.raises(ValorFueraDeRango, match="mayor que 0"):
+@pytest.mark.parametrize("valor", [0, -1, -0.5, "0", 20001])
+def test_cantidad_de_agua_fuera_de_rango(valor):
+    with pytest.raises(ValorFueraDeRango, match="cantidad de agua"):
         validar_cantidad_agua_ml(valor)
+
+
+def test_cantidad_de_agua_debe_ser_entera():
+    with pytest.raises(TipoDeDatoInvalido, match="entero"):
+        validar_cantidad_agua_ml(250.5)
 
 
 @pytest.mark.parametrize(
