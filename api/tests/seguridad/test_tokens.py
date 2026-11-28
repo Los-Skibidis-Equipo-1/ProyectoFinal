@@ -246,7 +246,8 @@ def test_el_token_vence_segun_la_duracion_del_servicio_que_lo_emitio():
 
 def test_un_token_vencido_tambien_es_un_token_invalido_y_un_error_de_negocio():
     viejo = servicio().emitir(
-        hacer_usuario(), ahora=ahora() - timedelta(days=1)
+        hacer_usuario(),
+        ahora=ahora() - DURACION_DEFECTO - timedelta(seconds=5),
     )
     with pytest.raises(TokenInvalido):
         servicio().verificar(viejo)
@@ -438,7 +439,8 @@ def test_el_error_de_credenciales_no_dice_cual_dato_fallo():
 
 def test_un_token_expirado_dice_que_vencio_sin_mas_detalles():
     viejo = servicio().emitir(
-        hacer_usuario(), ahora=ahora() - timedelta(days=1)
+        hacer_usuario(),
+        ahora=ahora() - DURACION_DEFECTO - timedelta(seconds=5),
     )
     with pytest.raises(TokenExpirado) as error:
         servicio().verificar(viejo)
