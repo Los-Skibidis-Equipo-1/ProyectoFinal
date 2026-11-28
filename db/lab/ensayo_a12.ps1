@@ -15,6 +15,8 @@
 # =====================================================================
 
 $ErrorActionPreference = 'Continue'
+# Que la salida de docker/psql (UTF-8) se lea bien en la consola y en las evidencias.
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $raiz = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 $envFile = Join-Path $raiz '.env'
 $log = Join-Path $raiz 'docs\evidencias\a12_ensayo.txt'
